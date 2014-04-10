@@ -20,8 +20,6 @@ Section FJ_Definition.
   Variable V : x_this -> Ty -> Set.
 
   Inductive FD := fd : Ty -> F -> FD.
-  (* Definition VD := list { t : Ty & V t}. *)
-  (* Definition in_vd := fun ty v => In (existT (fun t => V t) ty v). *)
 
   Inductive E : Set :=
   | e_var : forall xt t, V xt t -> E
@@ -44,18 +42,6 @@ Section FJ_Definition.
   Inductive Context : Set :=
   | ctxt_empty : E -> Context
   | ctxt_var : forall xt t, (V xt t -> Context) -> Context.
-  (* | ctxt_this : forall t, (V this t -> Context this) -> Context this. *)
-  
-  (* Definition Context := list { t : Ty & V t}. *)
-  (* Definition in_context := fun ty v => In (existS (fun t => V t) ty v). *)
-  (* Implicit Arguments in_context [ty]. *)
-
-  (* Inductive Extract_context : MB -> Context -> Prop := *)
-  (* | ctxt_nil : forall e, Extract_context (mb_nil e) nil *)
-  (* | ctxt_cons :  *)
-  (*     forall t (v : V t) vars ctxt, *)
-  (*       Extract_context (vars v) ctxt -> *)
-  (*       Extract_context (mb_cons t vars) ((existS _ t v)::ctxt). *)
   
   Inductive MB2Context (c:Ty) : forall xt, MB xt -> Context -> Prop :=
   | mb_ctxt_nil : forall e, MB2Context c _ (mb_empty e) (ctxt_empty e)
@@ -303,18 +289,6 @@ tructor.
                  Subst0 ctxt' e ctxt'' ->
                  Subst ctxt (e::es) ctxt''.
 
-(*
-  Inductive ctxt_new : Ty -> list Context -> Context -> Prop :=
-  | new_empty : forall t es, 
-                  ctxt_new t (map (fun e => ctxt_empty e) es)
-                           (ctxt_empty (new t es))
-  | new_var : forall xt t t' ctxt ctxts,
-                (forall v : V xt t, 
-                   ctxt_new t' (map (fun ctxt => ctxt v) ctxts) (ctxt v)) ->
-                ctxt_new t' (map (fun ctxt => ctxt_var xt t ctxt) ctxts) 
-                         (ctxt_var xt t ctxt).
-*)
-  (* Inductive ctxt_R_Field : Context -> Context ->  *)
 
   
   Inductive Reduce : Context -> Context -> Prop :=
@@ -514,62 +488,6 @@ tructor.
     Qed.
 
 
-(*
-    Definition MB2C_MB2C_with_eq_P xt mb Ds (extract_Ds : Extract_tys xt mb Ds) :=
-      forall c ctxt,
-        MB2Context c xt mb ctxt ->  MB2Context_with Ds c xt mb ctxt.
-
-    Lemma MB2C_MB2C_with_eq_H1 : forall e, MB2C_MB2C_with_eq_P _ _ _ (mb_empty_nil e).
-      unfold MB2C_MB2C_with_eq_P; intros. 
-      inversion H; subst; constructor.
-    Qed.
-
-
-    Lemma MB2C_MB2C_with_eq_H2 : 
-      forall ty ctxt tys extr, 
-        (forall v : V x ty, MB2C_MB2C_with_eq_P x (ctxt v) tys (extr v)) ->
-        MB2C_MB2C_with_eq_P _ _ _ (mb_var_cons ty ctxt tys extr).
-      unfold MB2C_MB2C_with_eq_P. intros.
-      inversion H0. subst.
-      constructor.
-      intros. apply H.
-      
-
-      MB2Context c x (ctxt v) (ctxt0 v)
-      
-
-      
-    Lemma MB2Context_MB2Context_with_eq :
-      forall c mb Ds ctxt,
-        Extract_tys this mb Ds ->
-        (MB2Context c this mb ctxt <->  MB2Context_with Ds c this mb ctxt). 
-      intros.
-      induction H; split; intros.
-      inversion H; subst. constructor.
-      inversion H; subst. constructor.
-
-      inversion H1; subst.
-      inversion H1; subst.
-      constructor.
-      clear H6. 
-
-subst.
-      inversion H6.
-
-      intros. destruct (H0 v). apply H2.
-
-assumption.
-      destruct (H0 _ 
-      apply (mb_ctxt_var_with. constructor.
-
-; split; intros.
-
- try inversion H; subst; try constructor.
-  *)    
-
-    (* Lemma MB2Context_MB2Context_with_eq : *)
-    (*   Extract_tys this mb Ds -> *)
-    (*   (MB2Context ty this mb ctxt <-> MB2Context_with Ds ty this mb ctxt). *)
 
 
     Lemma Lem_1_4 : 
