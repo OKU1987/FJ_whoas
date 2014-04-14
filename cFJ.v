@@ -153,6 +153,8 @@ Section FJ_Definition.
   | fd_var : forall xt t ctxt f ctxt',
                 (forall v : V xt t, ctxt_fd_access (ctxt v) f (ctxt' v)) -> 
                 ctxt_fd_access (ctxt_var _ _ ctxt) f (ctxt_var _ _ ctxt').
+
+  Scheme ctxt_fd_access_rec := Induction for ctxt_fd_access Sort Prop.
   
   Inductive ctxt_m_call : Context -> M -> list Context -> Context -> Prop :=
   | m_empty : forall e m es,
@@ -212,6 +214,74 @@ tructor.
                 (fun S fd' => match fd' with fd T _ => subtype S T end) Ss fds ->
               WF_E ctxt (ty_def cl).
 
+  Scheme WF_E_rec := Induction for WF_E Sort Prop.
+
+  Definition Weakening_P ctxt t (wf_t : WF_E ctxt t) :=
+    forall xt t, WF_E (ctxt_var xt t (fun v => ctxt)) t.
+
+  Variable Weakening : forall ctxt t wf_t, Weakening_P ctxt t wf_t. 
+
+(*
+  Lemma Weakening_H1 : forall 
+
+  Lemma Weakening : forall xt t ctxt t', (forall v, WF_E (ctxt v) t') ->
+                                            WF_E (ctxt_var xt t ctxt) t'.
+    intros.
+
+*)
+
+  Definition Inv_T_Fields_P ctxt f ctxt' (ctxt_f : ctxt_fd_access ctxt f ctxt') :=
+    forall c0 fds n t f,
+      WF_E ctxt' t ->
+      exists d : Ty, fields (ty_def c0) fds /\
+                     nth_error fds n = Some (fd t f) /\
+                     WF_E ctxt d.
+
+
+
+
+  Lemma Inv_T_Fields_H2 : forall xt t ctxt f ctxt' c_fd,
+                            (forall v, Inv_T_Fields_P (ctxt v) f (ctxt' v) (c_fd v)) ->
+                            Inv_T_Fields_P _ _ _ (fd_var xt t _ _ _ c_fd).
+    unfold Inv_T_Fields_P; intros.
+    inversion H0; subst.
+    
+    inversion H2; subst.
+
+    exists (ty_def c0).
+    
+*)
+
+
+(*
+  Lemma Inv_T_Fields : 
+    forall c0 fds n ty f xt t ctxt ctxt' c3,
+      fields (ty_def c0) fds ->
+      nth_error fds n = Some (fd ty f) ->
+      (forall v, ctxt_fd_access (ctxt v) f (ctxt' v)) ->
+      WF_E (ctxt_var xt t ctxt') c3 ->
+      ctxt_fd_access (ctxt_var xt t ctxt) f (ctxt_var xt t ctxt') ->
+      exists d : Ty, WF_E (ctxt_var xt t ctxt) d.
+    intros.
+    
+  c2 : ctxt_fd_access e0 f e1
+  fields_fds : fields (ty_def c0) fds
+  fds_n : nth_error fds n = Some (fd ty f)
+  c3 : Ty
+  H : WF_E e1 c3
+  ========
+  exists d : Ty, WF_e e0 d                                                
+
+  fields_fds : fields (ty_def c0) fds
+  fds_n : nth_error fds n = Some (fd ty f)
+  H0 : forall v : V xt t, ctxt_fd_access (ctxt v) f (ctxt' v)
+  H : WF_E (ctxt_var xt t ctxt') c3
+  c1 : ctxt_new (ty_def c0) es (ctxt_var xt t ctxt)
+  c2 : ctxt_fd_access (ctxt_var xt t ctxt) f (ctxt_var xt t ctxt')
+  ======================
+  exists d : Ty, WF_E (ctxt_var xt t ctxt) d
+
+*)
   Definition override (m : M) (ty : Ty) (Ts : list Ty) (T : Ty) : Prop :=
     forall ds d, mtype m ty (mty ds d) -> T = d /\ Ts = ds.
 
@@ -255,33 +325,33 @@ tructor.
               Sub (fun xt t v => new ty (map (fun e0 => e0 xt t v) es)) e
                   (new ty es').
 
-  Inductive Subst0 : Context -> E -> Context -> Type :=
+  Inductive Subst0 : Context -> Context -> Context -> Type :=
   | Sub0_empty : forall xt t e0 e e0', 
                    Sub e0 e e0' ->
-                   Subst0 (ctxt_var _ _ (fun v => ctxt_empty (e0 xt t v))) e
-                          (ctxt_empty e0')
-  | Sub0_var : forall (xt:x_this) (t:Ty) e (ctxt ctxt' : V xt t -> Context),
-                 (forall (v : V xt t), Subst0 (ctxt v) e (ctxt' v)) ->
-                 Subst0 (ctxt_var _ _ ctxt) e (ctxt_var _ _ ctxt').
+                   Subst0 (ctxt_var _ _ (fun v => ctxt_empty (e0 xt t v))) 
+                          (ctxt_empty e) (ctxt_empty e0')
+  | Sub0_var : forall (xt:x_this) (t:Ty) (ctxt ctxt0 ctxt' : V xt t -> Context),
+                 (forall (v : V xt t), Subst0 (ctxt v) (ctxt0 v) (ctxt' v)) ->
+                 Subst0 (ctxt_var _ _ ctxt) (ctxt_var _ _ ctxt0) (ctxt_var _ _ ctxt').
 
   Section Example3.
     Variable d : E.
 
     Example c : forall xt t,
-                  Subst0 (ctxt_var _ _ (fun x => ctxt_empty (e_var xt t x))) d
+                  Subst0 (ctxt_var _ _ (fun x => ctxt_empty (e_var xt t x))) (ctxt_empty d)
                          (ctxt_empty d).
     intros. constructor. constructor. Qed.
 
     Example e : forall xt t, 
                   Subst0
-                    (ctxt_var xt t (fun (y : V xt t) => ctxt_var xt t (fun x => ctxt_empty (e_var _ _ y)))) d (ctxt_var _ _ (fun y => ctxt_empty (e_var xt t y))).
+                    (ctxt_var xt t (fun (y : V xt t) => ctxt_var xt t (fun x => ctxt_empty (e_var _ _ y)))) (ctxt_var xt t (fun y => ctxt_empty d)) (ctxt_var _ _ (fun y => ctxt_empty (e_var xt t y))).
     Proof.
     intros. apply Sub0_var. intros. 
     apply Sub0_empty with (e0 := (fun _ _ _ => e_var xt t v)). constructor.
     Qed.
   End Example3.
 
-  Inductive Subst : Context -> list E -> Context -> Type :=
+  Inductive Subst : Context -> list Context -> Context -> Type :=
   | Sub_one : forall ctxt e ctxt', Subst0 ctxt e ctxt' ->
                                    Subst ctxt (e::nil) ctxt'
   | Sub_cons : forall ctxt ctxt' ctxt'' e es,
@@ -299,35 +369,15 @@ tructor.
                 nth_error fds n = Some (fd ty f) -> 
                 nth_error es n = Some e' ->
                 Reduce e e'
-  | R_Invk : forall m (c:CL) mb ctxt es ds e0 e e'
+  | R_Invk : forall m (c:CL) mb ctxt es ds e0 e e',
                     ctxt_new (ty_def c) es e0 ->
                     ctxt_m_call e0 m ds e ->
                     mbody m (ty_def c) mb ->
                     MB2Context (ty_def c) _ mb ctxt ->
                     Subst ctxt (e0::ds) e' ->
                     Reduce e e'.
-  
 
-  Inductive Reduce : E -> E -> Prop :=
-  | R_Field : forall c ty fds es f e n,
-                fields (ty_def c) fds ->
-                nth_error fds n = Some (fd ty f) -> 
-                nth_error es n = Some e ->
-                Reduce (fd_access (new (ty_def c) es) f) e
-  | R_Invk : forall m (c:CL) mb ctxt es ds e,
-               mbody m (ty_def c) mb ->
-               MB2Context (ty_def c) _ mb ctxt ->
-               Subst ctxt ((new (ty_def c) es)::ds) (ctxt_empty e) ->
-               Reduce (m_call (new (ty_def c) es) m ds) e. 
-
-  Inductive Reduce_Context : Context -> Context -> Prop :=
-  | R_empty : forall e e', Reduce e e' -> 
-                           Reduce_Context (ctxt_empty e) (ctxt_empty e')
-  | R_var : forall xt t ctxt ctxt', 
-            (forall v : V xt t, Reduce_Context (ctxt xt t v) (ctxt' xt t v)) ->
-            Reduce_Context (ctxt_var _ _ (ctxt xt t)) (ctxt_var _ _ (ctxt' xt t)).
-
-  Scheme Reduce_Context_rec := Induction for Reduce_Context Sort Prop.
+  Scheme Reduce_rec := Induction for Reduce Sort Prop.
 
   Inductive C_Reduce : E -> E -> Prop :=
   | RC_Field :
@@ -546,67 +596,25 @@ tructor.
       eapply sub_class; eauto. assumption.
     Qed.
 
-(*
-    Definition pres_P ctxt ctxt' (red_c : Reduce_Context ctxt ctxt') :=
+
+    Definition pres_P ctxt ctxt' (red_c : Reduce ctxt ctxt') :=
       forall c, WF_E ctxt c -> exists d, WF_E ctxt' d /\ subtype d c.
 
-    Lemma pres_H2 : forall xt t ctxt ctxt' red_ctxt_ctxt',
-                      (forall v, pres_P _ _ (red_ctxt_ctxt' v)) ->
-                      pres_P _ _ (R_var xt t ctxt ctxt' red_ctxt_ctxt').
+    Lemma pres_H1 : forall c ty fds es f e0 n e e' c0 c1 fields_fds fds_n es_n,
+                      pres_P _ _ (R_Field c ty fds es f e0 n e e' c0 c1 fields_fds fds_n es_n).
       unfold pres_P; intros.
-      remember (ctxt_var xt t (ctxt xt t )) as ctxt0.
-      induction H0; subst.
-      inversion H0; subst. subst.
-      eexists. split. econstructor.
+      inversion c2; subst.
+      inversion H; inversion H0; subst.
+      inversion c1; subst.
+      inversion H1; inversion H4; subst.
+      admit.
 
 
 
-Inductive ctxt_e_var : Context -> Ty -> Prop :=
-    var_empty : forall (t : Ty) (v : V x t),
-                ctxt_e_var (ctxt_empty (e_var x t v)) t
-  | var_var : forall (xt : x_this) (t : Ty) (ctxt : V xt t -> Context),
-              (forall v : V xt t, ctxt_e_var (ctxt v) t) ->
-              ctxt_e_var (ctxt_var xt t ctxt) t
+      inversion H. subst. inversion H1; subst.
+      exists ty. split.
+      econstructor 2.
 
-
-Inductive WF_E : Context -> Ty -> Prop :=
-    T_Var : forall (ctxt : Context) (t : Ty),
-            ctxt_e_var ctxt t -> WF_E ctxt t
-  | T_Fields : forall (ctxt ctxt' : Context) (f : F) 
-                 (c : Ty) (fds : list FD) (t : Ty) 
-                 (i : nat),
-               ctxt_fd_access ctxt f ctxt' ->
-               WF_E ctxt c ->
-               fields c fds ->
-               nth_error fds i = Some (fd t f) -> WF_E ctxt' t
-  | T_Invk : forall (ctxt : Context) (ty_0 U : Ty) 
-               (m : M) (Us Ss : list Ty) (ctxts : list Context)
-               (ctxt' : Context),
-             ctxt_m_call ctxt m ctxts ctxt' ->
-             WF_E ctxt ty_0 ->
-             mtype m ty_0 (mty Us U) ->
-             List_P2' WF_E ctxts Ss -> List_P2' subtype Ss Us -> WF_E ctxt' U
-  | T_New : forall (cl : CL) (Ss : list Ty) (fds : list FD)
-              (ctxts : list Context) (ctxt : Context),
-            ctxt_new (ty_def cl) ctxts ctxt ->
-            fields (ty_def cl) fds ->
-            List_P2' WF_E ctxts Ss ->
-            List_P2'
-              (fun (S : Ty) (fd' : FD) =>
-               match fd' with
-               | fd T _ => subtype S T
-               end) Ss fds -> WF_E ctxt (ty_def cl)
-
-
-
-       (forall (xt : x_this) (t : Ty)
-          (ctxt ctxt' : forall x : x_this, Ty -> V x t -> Context)
-          (r : forall v : V xt t, Reduce_Context (ctxt xt t v) (ctxt' xt t v)),
-        (forall v : V xt t, P (ctxt xt t v) (ctxt' xt t v) (r v)) ->
-        P (ctxt_var xt t (ctxt xt t)) (ctxt_var xt t (ctxt' xt t))
-          (R_var xt t ctxt ctxt' r)) ->
-
-*)
     Lemma preservation : forall ctxt ctxt' c,
                            WF_E ctxt c -> Reduce_Context ctxt ctxt' ->
                            exists d, WF_E ctxt' d /\ subtype d c.
