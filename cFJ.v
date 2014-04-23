@@ -214,9 +214,6 @@ Section FJ_Definition.
     
     inversion H2; subst.
 
-    exists (ty_def c0).
-    
-*)
 
 
   Definition override (m : M) (ty : Ty) (Ts : list Ty) (T : Ty) : Prop :=
