@@ -39,36 +39,6 @@ Section FJ_Definition.
   Inductive L : Set := cld : C -> Ty -> list FD -> K -> list MD -> L.
 
 
-  Inductive Context : Set :=
-  | ctxt_empty : E -> Context
-  | ctxt_var : forall xt t, (V xt t -> Context) -> Context.
-  
-  Inductive MB2Context (c:Ty) : forall xt, MB xt -> Context -> Prop :=
-  | mb_ctxt_nil : forall e, MB2Context c _ (mb_empty e) (ctxt_empty e)
-  | mb_ctxt_var_cons :
-      forall t vars ctxt,
-        (forall v : V x t, MB2Context c _ (vars v) (ctxt v)) ->
-        MB2Context c _ (mb_var t vars) (ctxt_var _ t ctxt)
-  | mb_ctxt_this_cons :
-      forall vars ctxt,
-        (forall v : V this c, MB2Context c _ (vars v) (ctxt v)) ->
-        MB2Context c _ (mb_this c vars) (ctxt_var _ c ctxt).
-
-  Scheme MB2Context_rec := Induction for MB2Context Sort Prop.
-
-  Inductive MB2Context_with : list Ty -> Ty -> forall xt, MB xt -> Context -> Prop :=
-  | mb_ctxt_nil_with : forall c e, MB2Context_with nil c _ (mb_empty e) (ctxt_empty e)
-  | mb_ctxt_var_with : 
-      forall d Ds c vars ctxt,
-        (forall v:V x d, MB2Context_with Ds c _ (vars v) (ctxt v)) ->
-        MB2Context_with (d::Ds) c _ (mb_var _ vars) (ctxt_var _ _ ctxt)
-  | mb_ctxt_this_with :
-      forall Ds c vars ctxt,
-        (forall v : V this c, MB2Context_with Ds c _ (vars v) (ctxt v)) ->
-        MB2Context_with Ds c _ (mb_this _ vars) (ctxt_var _ _ ctxt). 
-
-  Scheme MB2_Context_with_rec := Induction for MB2Context_with Sort Prop.
-
 
   Variable CT : C -> option L.
   Variable CT_self : forall c c1 cl' l k fds, CT c = Some (cld c1 cl' l k fds) -> c = c1.
