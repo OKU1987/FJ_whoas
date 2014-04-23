@@ -637,11 +637,46 @@ Section FJ_Definition.
 
 
 
+    Definition pres_P e e' (red_c : Reduce e e') :=
+      forall c, E_WF e c -> exists d, E_WF e' d /\ subtype d c.
 
 
+    Lemma pres_H1 : forall c ty fds es f e0 n fields_fds fds_n es_n,
+                      pres_P _ _ (R_Field c ty fds es f e0 n fields_fds fds_n es_n).
+      unfold pres_P; intros.
       inversion H; subst.
+      inversion H2; subst.
+      generalize (Fields_eq _ _ H3 _ H4).
+      generalize (Fields_eq _ _ H4 _ fields_fds).
+      intros; subst.
       rename Ss into Cs.
+      apply P2'_if_P2 in H6; unfold List_P2 in H6; destruct H6 as [fnd_es not_fnd_es].
+      destruct (fnd_es _ _ es_n) as [C [Cs_n wf_e0]].
+      exists C. split. eassumption.
+      rewrite <- (fds_distinct _ _ H3 _ _ _ _ _ _ (refl_equal _) fds_n H5) in H5.
+      apply P2'_if_P2 in H8; unfold List_P2 in H8; destruct H8 as [fnd_Cs not_fnd_Cs].
+      destruct (fnd_Cs _ _ Cs_n) as [fd' [fds_n' sub_C]].
+      rewrite fds_n' in H5. inversion H5. subst. 
       assumption.
+    Qed.
+
+    Lemma pres_H2 : forall m c mb es ds e mbody_m sub_mb,
+                      pres_P _ _ (R_Invk m c mb es ds e mbody_m sub_mb).
+      unfold pres_P; intros.
+      inversion H; subst. inversion H3; subst.
+      rename c0 into c1. rename c into c0. rename c1 into c.
+      rename e into e'. rename Us into Ds. rename Ss into Cs.
+      destruct (Lem_1_4 _ _ _ mbody_m _ _ H4)
+        as [D0 [b [sub_c0_D0 [sub_b_c [ext_Ds wf_mb]]]]].
+      destruct (Term_subst_pres_types _ _ _ wf_mb _ _ _ _ H6 H7 ext_Ds sub_mb)
+               as [d [wf_e' sub_d_b]].
+      exists d. split.
+      assumption.
+      constructor 2 with (d:=b); assumption.
+    Qed.
+
+
+
 
 
 
