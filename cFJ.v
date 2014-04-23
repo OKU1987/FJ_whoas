@@ -99,66 +99,6 @@ Section FJ_Definition.
         mbody m d mb' ->
         mbody m (ty_def (cl c)) mb'.
 
-  Inductive ctxt_e_var : Context -> Ty -> Prop :=
-  | var_empty : forall t v, ctxt_e_var (ctxt_empty (e_var x t v)) t
-  | var_var : forall xt t ctxt,
-                (forall v : V xt t, ctxt_e_var (ctxt v) t) ->
-                ctxt_e_var (ctxt_var _ _ ctxt) t.
-  
-  Inductive ctxt_fd_access : Context -> F -> Context -> Prop :=
-  | fd_empty : forall e f, 
-                 ctxt_fd_access (ctxt_empty e) f (ctxt_empty (fd_access e f))
-  | fd_var : forall xt t ctxt f ctxt',
-                (forall v : V xt t, ctxt_fd_access (ctxt v) f (ctxt' v)) -> 
-                ctxt_fd_access (ctxt_var _ _ ctxt) f (ctxt_var _ _ ctxt').
-
-  Scheme ctxt_fd_access_rec := Induction for ctxt_fd_access Sort Prop.
-  
-  Inductive ctxt_m_call : Context -> M -> list Context -> Context -> Prop :=
-  | m_empty : forall e m es,
-                ctxt_m_call (ctxt_empty e) m (map (fun e => ctxt_empty e) es)
-                            (ctxt_empty (m_call e m es))
-  | m_var : forall xt t ctxt m ctxts ctxt',
-              (forall v : V xt t, 
-                 ctxt_m_call (ctxt v) m (map (fun ctxt => ctxt v) ctxts)
-                             (ctxt' v)) ->
-              ctxt_m_call (ctxt_var _ _ ctxt) m
-                          (map (fun ctxt => ctxt_var _ _ ctxt) ctxts) 
-                          (ctxt_var _ _ ctxt').
-  Inductive ctxt_new : Ty -> list Context -> Context -> Prop :=
-  | new_empty : forall t es, 
-                  ctxt_new t (map (fun e => ctxt_empty e) es)
-                           (ctxt_empty (new t es))
-  | new_var : forall xt t t' ctxt ctxts,
-                (forall v : V xt t, 
-                   ctxt_new t' (map (fun ctxt => ctxt v) ctxts) (ctxt v)) ->
-                ctxt_new t' (map (fun ctxt => ctxt_var xt t ctxt) ctxts) 
-                         (ctxt_var xt t ctxt).
-
-  Inductive WF_E : Context -> Ty -> Prop :=
-  | T_Var : forall ctxt t, ctxt_e_var ctxt t -> WF_E ctxt t
-  | T_Fields : forall ctxt ctxt' f c fds t i, 
-                 ctxt_fd_access ctxt f ctxt' ->
-                 WF_E ctxt c ->
-                 fields c fds -> 
-                 nth_error fds i = Some (fd t f) ->
-                 WF_E ctxt' t
-  | T_Invk : forall ctxt ty_0 U m Us Ss ctxts ctxt',
-               ctxt_m_call ctxt m ctxts ctxt' ->
-               WF_E ctxt ty_0 ->
-               mtype m ty_0 (mty Us U) ->
-               List_P2' WF_E ctxts Ss ->
-               List_P2' subtype Ss Us ->
-               WF_E ctxt' U
-  | T_New : forall cl Ss fds ctxts ctxt,
-              ctxt_new (ty_def cl) ctxts ctxt ->
-              fields (ty_def cl) fds ->
-              List_P2' WF_E ctxts Ss ->
-              List_P2' 
-                (fun S fd' => match fd' with fd T _ => subtype S T end) Ss fds ->
-              WF_E ctxt (ty_def cl).
-
-  Scheme WF_E_rec := Induction for WF_E Sort Prop.
 
   Definition Weakening_P ctxt t (wf_t : WF_E ctxt t) :=
     forall xt t, WF_E (ctxt_var xt t (fun v => ctxt)) t.
