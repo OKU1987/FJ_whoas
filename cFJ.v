@@ -219,35 +219,6 @@ Section FJ_Definition.
 *)
 
 
-(*
-  Lemma Inv_T_Fields : 
-    forall c0 fds n ty f xt t ctxt ctxt' c3,
-      fields (ty_def c0) fds ->
-      nth_error fds n = Some (fd ty f) ->
-      (forall v, ctxt_fd_access (ctxt v) f (ctxt' v)) ->
-      WF_E (ctxt_var xt t ctxt') c3 ->
-      ctxt_fd_access (ctxt_var xt t ctxt) f (ctxt_var xt t ctxt') ->
-      exists d : Ty, WF_E (ctxt_var xt t ctxt) d.
-    intros.
-    
-  c2 : ctxt_fd_access e0 f e1
-  fields_fds : fields (ty_def c0) fds
-  fds_n : nth_error fds n = Some (fd ty f)
-  c3 : Ty
-  H : WF_E e1 c3
-  ========
-  exists d : Ty, WF_e e0 d                                                
-
-  fields_fds : fields (ty_def c0) fds
-  fds_n : nth_error fds n = Some (fd ty f)
-  H0 : forall v : V xt t, ctxt_fd_access (ctxt v) f (ctxt' v)
-  H : WF_E (ctxt_var xt t ctxt') c3
-  c1 : ctxt_new (ty_def c0) es (ctxt_var xt t ctxt)
-  c2 : ctxt_fd_access (ctxt_var xt t ctxt) f (ctxt_var xt t ctxt')
-  ======================
-  exists d : Ty, WF_E (ctxt_var xt t ctxt) d
-
-*)
   Definition override (m : M) (ty : Ty) (Ts : list Ty) (T : Ty) : Prop :=
     forall ds d, mtype m ty (mty ds d) -> T = d /\ Ts = ds.
 
