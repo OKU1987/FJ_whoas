@@ -402,6 +402,33 @@ Section FJ_Definition.
     Qed.
 
 
+    Lemma subclass_fields : forall S T (sub_S_T : subtype S T),
+                              forall fds', 
+                                fields T fds' ->
+                                exists fds, fields S fds /\
+                                            (forall fd' n, nth_error fds' n = Some fd' -> nth_error fds n = Some fd').
+      intros S T sub_S_T.
+      induction sub_S_T; intros.
+      Case "sub_refl".
+      exists fds'. split. assumption.
+      intros. assumption.
+      Case "sub_trans".
+      destruct (IHsub_S_T2 _ H) as [fds'' [fields_d nth_fds']].
+      destruct (IHsub_S_T1 _ fields_d) as [fds''' [fields_c nth_fds'']].
+      exists fds'''. split. assumption.
+      intros.
+      apply (nth_fds'' _ _ (nth_fds' _ _ H0)).
+      Case "sub_class".
+      generalize (WF_CT _ _ H); intros.
+      inversion H1; subst.
+      generalize (Fields_eq _ _ H0 _ H8); intro; subst.
+      eexists. split. econstructor; eassumption.
+      clear. 
+      induction d_fds; intros; destruct n; simpl in *|-*; try discriminate; auto.
+    Qed.
+
+
+    
 
 
     Lemma Lem_1_4 : 
