@@ -435,11 +435,10 @@ Section FJ_Definition.
       forall m c0 mb, 
         mbody m c0 mb -> 
         forall Ds d, mtype m c0 (mty Ds d) ->
-                     exists d0, exists c, exists ctxt,
-                                            subtype c0 d0 /\ subtype c d /\
-                                            MB2Context d0 _ mb ctxt /\ 
-                                            Extract_tys _ mb Ds /\
-                                            WF_E ctxt c.    
+                     exists D0, exists c, subtype c0 D0 /\ 
+                                          subtype c d /\
+                                          Extract_tys _ mb Ds /\
+                                          E_WF_in_MB D0 _ mb c.
       intros m c0 mb mb_c0.
       induction mb_c0.
       Case "mb_class".
@@ -450,8 +449,8 @@ Section FJ_Definition.
       generalize (WF_CT _ _ H); intros. inversion H2; subst.
       generalize (H12 _ H0) (H12 _ H7). intros. 
       inversion H3; subst. inversion H4; subst.
-      rewrite H25 in H19. inversion H19; subst. clear H19.
-      rewrite H in H25. inversion H25; subst. clear H25.
+      rewrite H23 in H18. inversion H18; subst. clear H18.
+      rewrite H in H23. inversion H23; subst. clear H23.
       assert (mb0 = mb).
       generalize H0 H7 H13; clear; intros.
       induction mds. inversion H0.
@@ -465,7 +464,7 @@ Section FJ_Definition.
       apply (in_map (fun md' => match md' with md _ m _ => m end) _ _ H).
       inversion H13.
       apply (IHmds H H1 H3).
-      destruct H5; subst. clear H H2 H3 H11 H12 H13 H14 H20 H26.
+      subst.
       repeat eexists; eauto.
       constructor. 
       SCase "m not in mds".
@@ -479,11 +478,11 @@ Section FJ_Definition.
       destruct (H0 _ _ H7).
       SCase "m not in mds".
       rewrite H in H3. inversion H3; subst. clear H3.
-      destruct (IHmb_c0 _ _ H6) 
-        as [d0' [c [ctxt [sub_d1_d0' [sub_c_d [mb'2ctxt [ext_Ds WF_c]]]]]]].
+      destruct (IHmb_c0 _ _ H6)
+               as [D0' [c' [sub_d1_D0' [sub_c_d [ext_Ds wf_mb']]]]].
       repeat eexists; eauto.
       destruct d1.
-      constructor 2 with (d:=ty_def c1).
+      constructor 2 with (d:=ty_def c0).
       eapply sub_class; eauto. assumption.
     Qed.
 
