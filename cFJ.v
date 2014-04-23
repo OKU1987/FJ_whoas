@@ -390,13 +390,13 @@ Section FJ_Definition.
     Lemma meth_overriding S T (sub_S_T : subtype S T) : forall m Us U,
                               mtype m T (mty Us U) -> mtype m S (mty Us U).
       intros.
-      induction sub_S_T; auto. rename c0 into c.
+      induction sub_S_T; auto.
       destruct (In_m_mds_dec m mds) as [[ty [mb In_m]] | Not_In_m].
       generalize (WF_CT _ _ H0); intro WF_c. inversion WF_c. subst.
       clear CT_self.
       generalize (H8 _ In_m); intro WF_m. inversion WF_m; subst.
-      rewrite H13 in H0. inversion H0. subst.
-      unfold override in H14. destruct (H14 Us U H); subst.
+      rewrite H12 in H0. inversion H0. subst.
+      unfold override in H13. destruct (H13 Us U H); subst.
       eapply mtype_fnd; eassumption.
       eapply mtype_not_fnd; eassumption.
     Qed.
