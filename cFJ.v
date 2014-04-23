@@ -26,6 +26,7 @@ Section FJ_Definition.
   | fd_access : E -> F -> E
   | m_call : E -> M -> list E -> E
   | new : Ty -> list E -> E.
+  Implicit Arguments e_var [xt t].
 
   Inductive MB : x_this -> Set :=
   | mb_empty : E -> MB x
@@ -131,7 +132,7 @@ Section FJ_Definition.
 
   Inductive Sub : (forall xt t, V xt t -> E) -> E -> E -> Prop :=
   | S_var_eq : forall e, Sub e_var e e
-  | S_var_neq : forall xt t (v:V xt t) e, Sub (fun _ _ _ => e_var _ _ v) e (e_var _ _ v)
+  | S_var_neq : forall xt t (v:V xt t) e, Sub (fun _ _ _ => e_var v) e (e_var v)
   | S_fd_access : forall e0 e e0' f, 
                     Sub e0 e e0' -> 
                     Sub (fun xt t v => fd_access (e0 xt t v) f) e
