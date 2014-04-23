@@ -268,22 +268,6 @@ Section FJ_Definition.
                  (forall (v : V xt t), Subst0 (ctxt v) (ctxt0 v) (ctxt' v)) ->
                  Subst0 (ctxt_var _ _ ctxt) (ctxt_var _ _ ctxt0) (ctxt_var _ _ ctxt').
 
-  Section Example3.
-    Variable d : E.
-
-    Example c : forall xt t,
-                  Subst0 (ctxt_var _ _ (fun x => ctxt_empty (e_var xt t x))) (ctxt_empty d)
-                         (ctxt_empty d).
-    intros. constructor. constructor. Qed.
-
-    Example e : forall xt t, 
-                  Subst0
-                    (ctxt_var xt t (fun (y : V xt t) => ctxt_var xt t (fun x => ctxt_empty (e_var _ _ y)))) (ctxt_var xt t (fun y => ctxt_empty d)) (ctxt_var _ _ (fun y => ctxt_empty (e_var xt t y))).
-    Proof.
-    intros. apply Sub0_var. intros. 
-    apply Sub0_empty with (e0 := (fun _ _ _ => e_var xt t v)). constructor.
-    Qed.
-  End Example3.
 
   Inductive Subst : Context -> list Context -> Context -> Type :=
   | Sub_one : forall ctxt e ctxt', Subst0 ctxt e ctxt' ->
