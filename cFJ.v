@@ -18,6 +18,11 @@ Section FJ_Definition.
   | this : x_this.
 
   Variable V : x_this -> Ty -> Set.
+  Axiom variables_exist : forall t (P : (V x t) -> Prop),
+                            (forall v : V x t, P v) -> exists v', P v'.  
+  Axiom this_exists : forall t (P : (V this t) -> Prop),
+                            (forall v : V this t, P v) -> exists v', P v'.  
+
 
   Inductive FD := fd : Ty -> F -> FD.
 
