@@ -169,42 +169,7 @@ Section FJ_Definition.
               Sub (fun xt t v => new ty (map (fun e0 => e0 xt t v) es)) e
                   (new ty es').
 
-  Inductive Subst0 : Context -> Context -> Context -> Type :=
-  | Sub0_empty : forall xt t e0 e e0', 
-                   Sub e0 e e0' ->
-                   Subst0 (ctxt_var _ _ (fun v => ctxt_empty (e0 xt t v))) 
-                          (ctxt_empty e) (ctxt_empty e0')
-  | Sub0_var : forall (xt:x_this) (t:Ty) (ctxt ctxt0 ctxt' : V xt t -> Context),
-                 (forall (v : V xt t), Subst0 (ctxt v) (ctxt0 v) (ctxt' v)) ->
-                 Subst0 (ctxt_var _ _ ctxt) (ctxt_var _ _ ctxt0) (ctxt_var _ _ ctxt').
-
-
-  Inductive Subst : Context -> list Context -> Context -> Type :=
-  | Sub_one : forall ctxt e ctxt', Subst0 ctxt e ctxt' ->
-                                   Subst ctxt (e::nil) ctxt'
-  | Sub_cons : forall ctxt ctxt' ctxt'' e es,
-                 Subst ctxt es ctxt' ->
-                 Subst0 ctxt' e ctxt'' ->
-                 Subst ctxt (e::es) ctxt''.
-
-
   
-  Inductive Reduce : Context -> Context -> Prop :=
-  | R_Field : forall c ty fds es f e0 n e e',
-                ctxt_new (ty_def c) es e0 ->
-                ctxt_fd_access e0 f e ->
-                fields (ty_def c) fds ->
-                nth_error fds n = Some (fd ty f) -> 
-                nth_error es n = Some e' ->
-                Reduce e e'
-  | R_Invk : forall m (c:CL) mb ctxt es ds e0 e e',
-                    ctxt_new (ty_def c) es e0 ->
-                    ctxt_m_call e0 m ds e ->
-                    mbody m (ty_def c) mb ->
-                    MB2Context (ty_def c) _ mb ctxt ->
-                    Subst ctxt (e0::ds) e' ->
-                    Reduce e e'.
-
   Scheme Reduce_rec := Induction for Reduce Sort Prop.
 
   Inductive C_Reduce : E -> E -> Prop :=
