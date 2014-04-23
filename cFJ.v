@@ -100,29 +100,7 @@ Section FJ_Definition.
         mbody m (ty_def (cl c)) mb'.
 
 
-  Definition Weakening_P ctxt t (wf_t : WF_E ctxt t) :=
-    forall xt t, WF_E (ctxt_var xt t (fun v => ctxt)) t.
 
-  Variable Weakening : forall ctxt t wf_t, Weakening_P ctxt t wf_t. 
-
-
-  Definition Inv_T_Fields_P ctxt f ctxt' (ctxt_f : ctxt_fd_access ctxt f ctxt') :=
-    forall c0 fds n t f,
-      WF_E ctxt' t ->
-      exists d : Ty, fields (ty_def c0) fds /\
-                     nth_error fds n = Some (fd t f) /\
-                     WF_E ctxt d.
-
-
-
-
-  Lemma Inv_T_Fields_H2 : forall xt t ctxt f ctxt' c_fd,
-                            (forall v, Inv_T_Fields_P (ctxt v) f (ctxt' v) (c_fd v)) ->
-                            Inv_T_Fields_P _ _ _ (fd_var xt t _ _ _ c_fd).
-    unfold Inv_T_Fields_P; intros.
-    inversion H0; subst.
-    
-    inversion H2; subst.
 
 
 
