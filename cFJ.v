@@ -636,63 +636,12 @@ Section FJ_Definition.
     Qed.
 
 
-    Definition pres_P ctxt ctxt' (red_c : Reduce ctxt ctxt') :=
-      forall c, WF_E ctxt c -> exists d, WF_E ctxt' d /\ subtype d c.
-
-    Lemma pres_H1 : forall c ty fds es f e0 n e e' c0 c1 fields_fds fds_n es_n,
-                      pres_P _ _ (R_Field c ty fds es f e0 n e e' c0 c1 fields_fds fds_n es_n).
-      unfold pres_P; intros.
-      inversion c2; subst.
-      inversion H; inversion H0; subst.
-      inversion c1; subst.
-      inversion H1; inversion H4; subst.
-      admit.
 
 
 
-      inversion H. subst. inversion H1; subst.
-      exists ty. split.
-      econstructor 2.
-
-    Lemma preservation : forall ctxt ctxt' c,
-                           WF_E ctxt c -> Reduce_Context ctxt ctxt' ->
-                           exists d, WF_E ctxt' d /\ subtype d c.
-      intros.
-      induction H0.
-      admit.
       inversion H; subst.
-      
-
-      induction H0.
-      Case "R_field".
-      rename c0 into c. rename c1 into c0. rename n into i.
-      inversion H; inversion H3; subst.
-      rename c1 into d0.
-      inversion H4; inversion H7. subst.
       rename Ss into Cs.
-      generalize (Fields_eq _ _ H0 _ H8); intros.
-      generalize (Fields_eq _ _ H5 _ H8); intros. subst.
-      clear H5 H8.
-      apply P2'_if_P2 in H9; unfold List_P2 in H9; destruct H9 as [fnd_es not_fnd_es].
-      assert (nth_error (map(fun e => ctxt_empty e)es) i = Some (ctxt_empty e0)).
-      generalize es i H2; clear.
-      induction es; induction i; intros; inversion H2; subst; try reflexivity.
-      apply (IHes _ H0).
-      destruct (fnd_es _ _ H5) as [d [In_Cs WF_e]].
-      exists d. split. assumption.
-      rewrite <- (fds_distinct _ _ H0 _ _ _ _ _ _ (refl_equal _) H1 H6) in H6.
-      apply P2'_if_P2 in H10; unfold List_P2 in H10; destruct H10 as [fnd_Cs not_fnd_Cs].      
-      destruct (fnd_Cs _ _ In_Cs) as [fd' [fds_1_i sub_d_f]].
-      rewrite fds_1_i in H6. inversion H6. subst.
       assumption.
-      Case "R_Invk".
-      inversion H; inversion H3; subst.
-      rename c0 into c. rename c1 into c0. rename e0 into e'. rename Us into Ds.
-      rename Ss into Cs.
-      inversion H4; inversion H8; subst.
-      destruct (Lem_1_4 _ _ _ H0 _ _ H5)
-        as [d0 [b [ctxt' [sub_c0_d0 [sub_b_c [mb2ctxt' [extr_Ds WF_ctxt']]]]]]].
-      
 
 
 
