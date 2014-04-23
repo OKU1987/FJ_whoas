@@ -1,6 +1,7 @@
 Require Import FJ_tactics.
 Require Import List.
 Require Import Arith.Peano_dec.
+Require Import JMeq.
 
 Section FJ_Definition.
 
@@ -515,6 +516,69 @@ Section FJ_Definition.
 
     Definition Term_subst_pres_types_sub := Sub_rec _ _ Term_subst_pres_types_sub_H1 Term_subst_pres_types_sub_H2 Term_subst_pres_types_sub_H3 Term_subst_pres_types_sub_H4 Term_subst_pres_types_sub_H5 Term_subst_pres_types_sub_H6 Term_subst_pres_types_sub_H7.
 
+
+    Lemma Term_subst_pres_types : forall mb D0 D,
+                                   E_WF_in_MB D0 this mb D ->
+                                   forall ds Ss Us e,
+                                     List_P2' E_WF ds Ss -> 
+                                     List_P2' subtype Ss Us ->
+                                     Extract_tys this mb Us ->
+                                     Subst this mb ds e ->
+                                     exists E, E_WF e E /\ subtype E D.
+      intros mb D0 D H.
+      induction H.
+      Case "wf_e_mb_empty".
+      intros.
+      inversion H3; subst.
+      exists ty. split. assumption. constructor.
+      Case "wf_e_mb_var".
+      intros.
+      inversion H4; subst.
+      inversion H3; subst.
+      assert (JMeq f1 f) by
+          (change match existT (fun t => V x t -> MB x) t f1 with
+                       | existT t f1 => JMeq f1 f
+                   end; rewrite H6; constructor); subst; clear H6.
+      assert (JMeq ctxt0 f) by
+          (change match existT (fun t => V x t -> MB x) t ctxt0 with
+                       | existT t ctxt0 => JMeq ctxt0 f
+                   end; rewrite H9; constructor); subst; clear H9.
+      inversion H1; subst.
+      inversion H2; subst.
+      rename e1 into d.
+      destruct (variables_exist _ _ H7) as [v sub_v].
+      generalize (H10 v); intro ex_tys.
+      destruct (H0 _ _ _ _ _ H12 H15 ex_tys sub_v).
+      generalize Term_subst_pres_types_sub; intro.
+      destruct H5.
+      destruct (H6 _ _ _ H8 _ _ _ _ _ H5 H9 H13).
+      destruct H14.
+      exists x1. split. assumption.
+      constructor 2 with (d:=x0); assumption.
+      Case "wf_e_mb_this".
+      intros.
+      inversion H4; subst.
+      inversion H3; subst.
+      assert (JMeq f1 f) by
+          (change match existT (fun t => V _ t -> MB x) D0 f1 with
+                       | existT D0 f1 => JMeq f1 f
+                   end; rewrite H6; constructor); subst; clear H6.
+      assert (JMeq ctxt0 f) by
+          (change match existT (fun t => V _ t -> MB x) D0 ctxt0 with
+                       | existT D0 ctxt0 => JMeq ctxt0 f
+                   end; rewrite H9; constructor); subst; clear H9.
+      inversion H1; subst.
+      inversion H2; subst.
+      destruct (this_exists _ _ H7) as [v sub_v].
+      generalize (H10 v); intro ex_tys.
+      destruct (H0 _ _ _ _ _ H12 H15 ex_tys sub_v).
+      generalize Term_subst_pres_types_sub; intro.
+      destruct H5.
+      destruct (H6 _ _ _ H8 _ _ _ _ _ H5 H9 H13).
+      destruct H14.
+      exists x1. split. assumption.
+      constructor 2 with (d:=x0); assumption.
+    Qed.
 
     Lemma Lem_1_4 : 
       forall m c0 mb, 
