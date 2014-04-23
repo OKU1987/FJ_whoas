@@ -139,11 +139,10 @@ Section FJ_Definition.
     forall ds d, mtype m ty (mty ds d) -> T = d /\ Ts = ds.
 
   Inductive Meth_WF : C -> MD -> Prop :=
-  | T_MD : forall (mb:MB this) (ctxt:Context) (e_0 c_0 :Ty) (c:C)
+  | T_MD : forall (mb:MB this) (e_0 c_0 :Ty) (c:C)
                   (d:CL) (fds:list FD) (k':K) (mds:list MD) (m:M) tys,
-      MB2Context (ty_def (cl c)) this mb ctxt ->
       Extract_tys _ mb tys ->
-      WF_E ctxt e_0 ->
+      E_WF_in_MB (ty_def (cl c)) this mb e_0 ->
       subtype e_0 c_0 ->
       CT c = Some (cld c (ty_def d) fds k' mds) ->
       override m (ty_def d) tys c_0 ->
