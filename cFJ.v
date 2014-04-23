@@ -177,6 +177,45 @@ Section FJ_Definition.
               Sub (fun xt t v => new ty (map (fun e0 => e0 xt t v) es)) e
                   (new ty es').
 
+ Section Sub_recursion.
+    Variables (P : forall e0 e e0', Sub e0 e e0' -> Prop)
+              (Q : forall es e es', List_P2' (fun e0 e0' => Sub e0 e e0') es es' -> Prop).
+
+    Hypothesis 
+      (H1 : forall e, P _ _ _ (S_var_eq e))
+      (H2 : forall xt t v e, P _ _ _ (S_var_neq xt t v e))
+      (H3 : forall e0 e e0' f sub_e0, P _ _ _ sub_e0 -> P _ _ _ (S_fd_access e0 e e0' f sub_e0))
+      (H4 : forall e0 es e e0' es' m sub_e0 sub_es, P _ _ _ sub_e0 -> Q _ _ _ sub_es -> P _ _ _ (S_m_call e0 es e e0' es' m sub_e0 sub_es))
+      (H5 : forall ty es e es' sub_es, Q _ _ _ sub_es -> P _ _ _ (S_new ty es e es' sub_es))
+      (H6 : forall e, Q nil e nil (nil_P2' (fun e0 e0' => Sub e0 e e0')))
+      (H7 : forall e0 es e e0' es' sub_e0 sub_es, P e0 e e0' sub_e0 -> Q es e es' sub_es -> Q _ _ _ (cons_P2' _ _ _ _ _ sub_e0 sub_es)).
+
+    Fixpoint Sub_rec e0 e e0' (sub_e0 : Sub e0 e e0') : P _ _ _ sub_e0 :=
+      match sub_e0 return P _ _ _ sub_e0 with
+        | S_var_eq e => H1 e
+        | S_var_neq xt t v e => H2 xt t v e
+        | S_fd_access e0 e e0' f sub_e0 => 
+          H3 e0 e e0' f sub_e0 (Sub_rec _ _ _ sub_e0)
+        | S_m_call e0 es e e0' es' m sub_e0 sub_es =>
+          H4 e0 es e e0' es' m sub_e0 sub_es (Sub_rec _ _ _ sub_e0)
+             ((fix es_rect es es' (sub_es : List_P2' (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
+                 match sub_es return Q _ _ _ sub_es with
+                   | nil_P2' => H6 e
+                   | cons_P2' e0 e0' es es' sub_e0 sub_es =>
+                     H7 e0 es e e0' es' sub_e0 sub_es (Sub_rec _ _ _ sub_e0) (es_rect _ _ sub_es)
+                 end) _ _ sub_es)
+        | S_new ty es e es' sub_es =>
+          H5 ty es e es' sub_es
+             ((fix es_rect es es' (sub_es : List_P2' (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
+                 match sub_es return Q _ _ _ sub_es with
+                   | nil_P2' => H6 e
+                   | cons_P2' e0 e0' es es' sub_e0 sub_es =>
+                     H7 e0 es e e0' es' sub_e0 sub_es (Sub_rec _ _ _ sub_e0) (es_rect _ _ sub_es)
+                 end) _ _ sub_es)
+      end.
+  End Sub_recursion.
+
+
   Inductive Subst : forall xt, MB xt -> list E -> E -> Prop :=
   | Sub_empty : forall e, Subst _ (mb_empty e) nil e
   | Sub_var : forall t f es e e0 e',
