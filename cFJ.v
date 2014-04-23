@@ -429,6 +429,86 @@ Section FJ_Definition.
 
 
     
+    Definition Term_subst_pres_types_sub_P e0 d e (sub_e0 : Sub e0 d e) :=
+      forall xt t (v:V xt t) D S, E_WF (e0 _ _ v) D ->
+                                  E_WF d S ->
+                                  subtype S t ->
+                                  exists C, E_WF e C /\ subtype C D.
+
+    Definition Term_subst_pres_types_sub_Q es d es' (sub_es : List_P2' (fun e0 e0' => Sub e0 d e0') es es') :=
+      forall xt t (v:V xt t) Ds S, 
+        List_P2' E_WF (map (fun e0 => e0 _ _ v) es) Ds ->
+        E_WF d S ->
+        subtype S t ->
+        exists Cs, List_P2' E_WF es' Cs /\ List_P2' subtype Cs Ds.
+
+
+    Lemma Term_subst_pres_types_sub_H1 : forall e, Term_subst_pres_types_sub_P _ _ _ (S_var_eq e).
+      unfold Term_subst_pres_types_sub_P; intros.
+      inversion H; repeat subst.
+      exists S. split; assumption.
+    Qed.
+
+    Lemma Term_subst_pres_types_sub_H2 : forall xt t v e, Term_subst_pres_types_sub_P _ _ _ (S_var_neq xt t v e).
+      unfold Term_subst_pres_types_sub_P; intros.
+      exists D. split. assumption. constructor.
+    Qed.
+
+    Lemma Term_subst_pres_types_sub_H3 : forall e0 e e0' f sub_e0, Term_subst_pres_types_sub_P _ _ _ sub_e0 -> Term_subst_pres_types_sub_P _ _ _ (S_fd_access e0 e e0' f sub_e0).
+      unfold Term_subst_pres_types_sub_P; intros.
+      inversion H0; subst.
+      destruct (H _ _ _ _ _ H5 H1 H2) as [E [wf_e0' sub_E]].
+      destruct (subclass_fields _ _ sub_E _ H6) as [fds' [fields_E nth_fds]].
+      generalize (nth_fds _ _ H8); intros.
+      exists D. split. econstructor; eassumption. constructor.
+    Qed.      
+
+    Lemma Term_subst_pres_types_sub_H4 : forall e0 es e e0' es' m sub_e0 sub_es, Term_subst_pres_types_sub_P _ _ _ sub_e0 -> Term_subst_pres_types_sub_Q _ _ _ sub_es -> Term_subst_pres_types_sub_P _ _ _ (S_m_call e0 es e e0' es' m sub_e0 sub_es).
+      unfold Term_subst_pres_types_sub_P; unfold Term_subst_pres_types_sub_Q; intros.
+      inversion H1; subst.
+      rename Us into Es. rename Ss into Ds. rename ty_0 into D0.
+      destruct (H _ _ _ _ _ H7 H2 H3) as [C0 [wf_e0' sub_C0_D0]].
+      destruct (H0 _ _ _ _ _ H10 H2 H3) as [Cs [wf_es' sub_Cs_Ds]].
+      generalize (meth_overriding _ _  sub_C0_D0 _ _ _ H8); intro.
+      eexists.
+      split. econstructor; try eassumption.
+      generalize sub_Cs_Ds H11; clear; intros.
+      Prop_Ind H11; intros; inversion sub_Cs_Ds; subst; constructor.
+      constructor 2 with (d:=a); assumption.
+      eapply IHList_P2'; eauto.
+      constructor.
+    Qed.
+
+    Lemma Term_subst_pres_types_sub_H5 : forall ty es e es' sub_es, Term_subst_pres_types_sub_Q _ _ _ sub_es -> Term_subst_pres_types_sub_P _ _ _ (S_new ty es e es' sub_es).
+      unfold Term_subst_pres_types_sub_P; unfold Term_subst_pres_types_sub_Q; intros.
+      inversion H0; subst.
+      destruct (H _ _ _ _ _ H6 H1 H2) as [Es [wf_es' sub_Es_Ss]].
+      eexists. split.
+      econstructor; try eassumption.
+      generalize H8 sub_Es_Ss; clear; intros.
+      Prop_Ind H8; intros; inversion sub_Es_Ss; subst; constructor.
+      destruct b.
+      constructor 2 with (d:=a); assumption.
+      eapply IHList_P2'; eauto.
+      constructor.
+    Qed.
+
+    Lemma Term_subst_pres_types_sub_H6 : forall e, Term_subst_pres_types_sub_Q _ _ _ (nil_P2' (fun e0 e0' => Sub e0 e e0')).
+      unfold Term_subst_pres_types_sub_Q; intros.
+      inversion H; subst.
+      exists nil. split; constructor.
+    Qed.
+
+    Lemma Term_subst_pres_types_sub_H7 : forall e0 es e e0' es' sub_e0 sub_es, Term_subst_pres_types_sub_P e0 e e0' sub_e0 -> Term_subst_pres_types_sub_Q es e es' sub_es -> Term_subst_pres_types_sub_Q _ _ _ (cons_P2' _ _ _ _ _ sub_e0 sub_es).
+      unfold Term_subst_pres_types_sub_P; unfold Term_subst_pres_types_sub_Q; intros.
+      inversion H1; subst.
+      destruct (H _ _ _ _ _ H6 H2 H3). destruct H4.
+      destruct (H0 _ _ _ _ _ H8 H2 H3). destruct H7.
+      eexists. split. econstructor; eassumption.
+      constructor; assumption.
+    Qed.
+
+    Definition Term_subst_pres_types_sub := Sub_rec _ _ Term_subst_pres_types_sub_H1 Term_subst_pres_types_sub_H2 Term_subst_pres_types_sub_H3 Term_subst_pres_types_sub_H4 Term_subst_pres_types_sub_H5 Term_subst_pres_types_sub_H6 Term_subst_pres_types_sub_H7.
 
 
     Lemma Lem_1_4 : 
