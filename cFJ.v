@@ -178,6 +178,30 @@ Section FJ_Definition.
               Sub (fun xt t v => new ty (map (fun e0 => e0 xt t v) es)) e
                   (new ty es').
 
+  Inductive Subst : forall xt, MB xt -> list E -> E -> Prop :=
+  | Sub_empty : forall e, Subst _ (mb_empty e) nil e
+  | Sub_var : forall t f es e e0 e',
+                (forall v : V x t, Subst _ (f v) es (e x t v)) ->
+                Sub e e0 e' ->
+                Subst _ (mb_var _ f) (e0::es) e'
+  | Sub_this : forall t f es e e0 e',
+                 (forall v : V this t, Subst _ (f v) es (e this t v)) ->
+                 Sub e e0 e' ->
+                 Subst this (mb_this _ f) (e0::es) e'. 
+
+
+
+ Inductive Reduce : E -> E -> Prop :=
+  | R_Field : forall c ty fds es f e n,
+                fields (ty_def c) fds -> 
+                nth_error fds n = Some (fd ty f) -> nth_error es n = Some e ->
+                Reduce (fd_access (new (ty_def c) es) f) e
+  | R_Invk : forall m (c:CL) (mb:MB this) es ds e,
+               mbody m (ty_def c) mb -> 
+               Subst this mb ds e ->
+               Reduce (m_call (new (ty_def c) es) m ds) e.
+
+  Notation "e ~> d" := (Reduce e d) (at level 70).
   
   Scheme Reduce_rec := Induction for Reduce Sort Prop.
 
