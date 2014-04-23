@@ -69,18 +69,6 @@ Section FJ_Definition.
 
   Scheme MB2_Context_with_rec := Induction for MB2Context_with Sort Prop.
 
-  Section CExample.
-    Variable t : Ty.
-    Check (mb_var t (fun v : V x t => mb_empty (e_var _ _ v))).
-    (* Check (ctxt_var t (fun v : V t => ctxt_nil (e_var _ v))). *)
-    
-(*    Variable v : V t.
-    Check (mb_e_nil (e_var _ v)).
-    Variable f : F.
-    Definition ctxt := (mb_cons t (fun x => mb_cons _ (fun w : V t => mb_nil (fd_access (e_var _ x) f)))).
-    Example a : forall w, Extract_E ctxt (fd_access (e_var t w) f).
-*)
-  End CExample.
 
   Variable CT : C -> option L.
   Variable CT_self : forall c c1 cl' l k fds, CT c = Some (cld c1 cl' l k fds) -> c = c1.
@@ -167,20 +155,6 @@ Section FJ_Definition.
               ctxt_m_call (ctxt_var _ _ ctxt) m
                           (map (fun ctxt => ctxt_var _ _ ctxt) ctxts) 
                           (ctxt_var _ _ ctxt').
-(*
-  Section Example2.
-    Variable t : Ty.
-    Variable m : M.
-
-    Example b : ctxt_m_call
-                  (ctxt_var x t (fun x0 => (ctxt_var x t (fun y => ctxt_empty (e_var _ _ x0))))) m
-                  ((ctxt_var x t (fun x0 => (ctxt_var x t (fun y=> ctxt_empty (e_var _ _ y)))))::nil)
-                  (ctxt_var x t (fun x0 => (ctxt_var x t (fun y => ctxt_empty (m_call (e_var _ _ x0) m ((e_var _ _ y)::nil)))))).
-    assert (ctxt_var x t (fun _ => ctxt_var x t (fun y => ctxt_empty (e_var _ t y)))::nil = (map (fun ctxt => ctxt_var x t ctxt) ((fun _ => ctxt_var x t (fun y => ctxt_empty (e_var _ t y)))::nil))).
-tructor.
-    Qed.
-  End Example2.
-*)
   Inductive ctxt_new : Ty -> list Context -> Context -> Prop :=
   | new_empty : forall t es, 
                   ctxt_new t (map (fun e => ctxt_empty e) es)
@@ -221,14 +195,6 @@ tructor.
 
   Variable Weakening : forall ctxt t wf_t, Weakening_P ctxt t wf_t. 
 
-(*
-  Lemma Weakening_H1 : forall 
-
-  Lemma Weakening : forall xt t ctxt t', (forall v, WF_E (ctxt v) t') ->
-                                            WF_E (ctxt_var xt t ctxt) t'.
-    intros.
-
-*)
 
   Definition Inv_T_Fields_P ctxt f ctxt' (ctxt_f : ctxt_fd_access ctxt f ctxt') :=
     forall c0 fds n t f,
