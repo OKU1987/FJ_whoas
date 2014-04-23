@@ -101,7 +101,37 @@ Section FJ_Definition.
         mbody m (ty_def (cl c)) mb'.
 
 
+  Inductive E_WF : E -> Ty -> Prop :=
+  | T_Var : forall xt t (v:V xt t), E_WF (e_var v) t
+  | T_Fields : forall e f ty fds ty' i, 
+                 E_WF e ty -> 
+                 fields ty fds ->
+                 nth_error fds i = Some (fd ty' f) ->
+                 E_WF (fd_access e f) ty'
+  | T_Invk : forall e_0 ty_0 U m Us Ss es,
+             E_WF e_0 ty_0 ->
+             mtype m ty_0 (mty Us U) ->
+             List_P2' E_WF es Ss -> List_P2' subtype Ss Us ->
+             E_WF (m_call e_0 m es) U
+  | T_New : forall cl Ss fds es,
+              fields (ty_def cl) fds ->
+              List_P2' E_WF es Ss ->
+              List_P2' (fun S fd' => match fd' with fd T _ => subtype S T end) Ss fds ->
+            E_WF (new (ty_def cl) es) (ty_def cl).
 
+
+
+  Inductive E_WF_in_MB (c:Ty) : forall xt, MB xt -> Ty -> Prop :=
+  | wf_e_mb_empty : forall e ty, E_WF e ty ->
+                                     E_WF_in_MB c _ (mb_empty e) ty
+  | wf_e_mb_var : forall t (f : V x t -> MB x) ty,
+                    (forall v, E_WF_in_MB c _ (f v) ty) ->
+                    E_WF_in_MB c x (mb_var _ f) ty
+  | wf_e_mb_this : forall (f : V this c -> MB x) ty,
+                     (forall v, E_WF_in_MB c _ (f v) ty) ->
+                     E_WF_in_MB c this (mb_this _ f) ty.
+
+  Scheme E_WF_in_MB_rec := Induction for E_WF_in_MB Sort Prop.
 
 
 
