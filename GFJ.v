@@ -30,8 +30,8 @@ Section FJ_Definition.
   Inductive E : Set :=
   | e_var : forall xt t, V xt t -> E
   | fd_access : E -> F -> E
-  | m_call : E -> M -> list E -> E
-  | new : Ty -> list E -> E.
+  | m_call : E -> M -> list Ty -> list E -> E
+  | new : N -> list E -> E.
   Implicit Arguments e_var [xt t].
 
   Inductive MB : x_this -> Set :=
