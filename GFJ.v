@@ -14,7 +14,9 @@ Section FJ_Definition.
   Variable TV : C -> option M -> nat -> Set.
 
   Inductive Ty : Set :=
-    ty_def : CL -> Ty.
+  | t_var : forall c m n, TV c m n -> Ty
+  | NTy : N -> Ty
+  with N : Set := N_def : CL -> list Ty -> N.
 
   Inductive x_this : Set := 
   | x : x_this
