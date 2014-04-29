@@ -11,6 +11,8 @@ Section FJ_Definition.
 
   Inductive CL := cl : C -> CL | Object : CL.
   
+  Variable TV : C -> option M -> nat -> Set.
+
   Inductive Ty : Set :=
     ty_def : CL -> Ty.
 
