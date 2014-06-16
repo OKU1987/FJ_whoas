@@ -19,6 +19,7 @@ Section FJ_Definition.
   with N : Set := N_def : CL -> list Ty -> N.
   Implicit Arguments t_var [c m n].
 
+  Definition TContext := list (N * C * option M).
 
   Inductive x_this : Set := 
   | x : x_this
