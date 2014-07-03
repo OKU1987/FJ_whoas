@@ -48,7 +48,6 @@ Section FJ_Definition.
 
   Inductive K := k : C -> list FD -> K.
 
-  Inductive L : Set := cld : C -> Ty -> list FD -> K -> list MD -> L.
   Inductive Mty : Set :=
   | mty : list N -> list Ty -> Ty -> Mty
   | mty_tp : forall c m n , (TV c (Some m) n -> Mty) -> Mty.
@@ -57,6 +56,9 @@ Section FJ_Definition.
   | md : list N -> Ty -> M -> MB this -> MD
   | md_tp : forall c m n , (TV c (Some m) n -> MD) -> MD.
 
+  Inductive L : Set :=
+  | cld : C -> list N -> N -> list FD -> K -> list MD -> L
+  | cld_tp : forall c n, (TV c None n -> L) -> L.
 
   Variable CT : C -> option L.
   Variable CT_self : forall c c1 cl' l k fds, CT c = Some (cld c1 cl' l k fds) -> c = c1.
