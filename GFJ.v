@@ -48,9 +48,11 @@ Section FJ_Definition.
 
   Inductive K := k : C -> list FD -> K.
 
-  Inductive Mty := mty : list Ty -> Ty -> Mty.
   Inductive MD : Set := md : Ty -> M -> MB this -> MD.
   Inductive L : Set := cld : C -> Ty -> list FD -> K -> list MD -> L.
+  Inductive Mty : Set :=
+  | mty : list N -> list Ty -> Ty -> Mty
+  | mty_tp : forall c m n , (TV c (Some m) n -> Mty) -> Mty.
 
 
 
