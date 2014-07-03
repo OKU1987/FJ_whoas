@@ -60,6 +60,50 @@ Section FJ_Definition.
   | cld : C -> list N -> N -> list FD -> K -> list MD -> L
   | cld_tp : forall c n, (TV c None n -> L) -> L.
 
+
+  Inductive TSub c m n : (TV c m n -> Ty) -> Ty -> Ty -> Prop :=
+  | S_tvar_eq : forall t, TSub c m n (@t_var c m n) t t
+  | S_tvar_neq : forall (tv: TV c m n) t,
+                   TSub c m n (fun _ => t_var tv) t (t_var tv)
+  | S_NTy : forall c' tys t tys',
+              List_P2' (fun ty0 ty0' => TSub c m n ty0 t ty0') tys tys' ->
+              TSub c m n
+                   (fun tv => (NTy (N_def c' (map (fun ty => ty tv) tys))))
+                   t (NTy (N_def c' tys')).
+
+  Section TSub_recursion.
+    Variables (P : forall c m n t0 t t0', TSub c m n t0 t t0' -> Prop)
+              (Q : forall c m n ts t ts', List_P2' (fun t0 t0' => TSub c m n t0 t t0') ts ts' -> Prop).
+
+    Hypothesis
+      (H1 : forall c m n t, P _ _ _ _ _ _ (S_tvar_eq c m n t))
+      (H2 : forall c m n tv t, P _ _ _ _ _ _ (S_tvar_neq c m n tv t))
+      (H3 : forall c m n c' tys t tys' sub_ts,
+              Q _ _ _ _ _ _ sub_ts ->
+              P _ _ _ _ _ _ (S_NTy c m n c' tys t tys' sub_ts))
+      (H4 : forall c m n t,
+              Q c m n nil t nil (nil_P2' (fun t0 t0' => TSub c m n t0 t t0')))
+      (H5 : forall c m n t0 ts t t0' ts' sub_t0 sub_ts,
+              P c m n t0 t t0' sub_t0 -> Q c m n ts t ts' sub_ts ->
+              Q c m n _ _ _ (cons_P2' _ _ _ _ _ sub_t0 sub_ts)).
+
+
+    Fixpoint TSub_rec c m n t0 t t0' (tsub_t0 : TSub c m n t0 t t0') : P c m n _ _ _ tsub_t0 :=
+      match tsub_t0 return P c m n _ _ _ tsub_t0 with
+        | S_tvar_eq t => H1 c m n t
+        | S_tvar_neq tv t => H2 c m n tv t
+        | S_NTy c' tys t tys' sub_ts =>
+          H3 c m n c' tys t tys' sub_ts
+             ((fix ts_rect ts ts' (sub_ts : List_P2' (fun t0 t0' => TSub c m n t0 t t0') ts ts') : Q _ _ _ _ _ _ sub_ts :=
+                 match sub_ts return Q _ _ _ _ _ _ sub_ts with
+                   | nil_P2' => H4 c m n t
+                   | cons_P2' t0 t0' ts ts' sub_t0 sub_ts =>
+                     H5 c m n t0 ts t t0' ts' sub_t0 sub_ts (TSub_rec _ _ _ _ _ _ sub_t0) (ts_rect _ _ sub_ts)
+                 end) _ _ sub_ts)
+      end.
+  End TSub_recursion.
+
+
   Variable CT : C -> option L.
   Variable CT_self : forall c c1 cl' l k fds, CT c = Some (cld c1 cl' l k fds) -> c = c1.
   
