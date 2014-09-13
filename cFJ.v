@@ -82,10 +82,10 @@ Section FJ_Definition.
   Scheme Extract_tys_rec := Induction for Extract_tys Sort Prop.
 
   Inductive mtype : M -> Ty -> Mty -> Prop :=
-  | mtype_fnd : forall m c d fds k' mds ty mb tys,
+  | mtype_fnd : forall m c d fds k' mds ty mb ty' tys,
                   CT c = Some (cld c d fds k' mds) ->
                   In (md ty m mb) mds ->
-                  Extract_tys _ mb tys -> 
+                  Extract_tys _ mb (ty'::tys) ->
                   mtype m (ty_def (cl c)) (mty tys ty)
   | mtype_not_fnd : forall m c d fds k' mds mty',
                       CT c = Some (cld c d fds k' mds) ->
@@ -147,7 +147,7 @@ Section FJ_Definition.
   Inductive Meth_WF : C -> MD -> Prop :=
   | T_MD : forall (mb:MB this) (e_0 c_0 :Ty) (c:C)
                   (d:CL) (fds:list FD) (k':K) (mds:list MD) (m:M) tys,
-      Extract_tys _ mb tys ->
+      Extract_tys _ mb (ty_def (cl c)::tys) ->
       E_WF_in_MB (ty_def (cl c)) this mb e_0 ->
       subtype e_0 c_0 ->
       CT c = Some (cld c (ty_def d) fds k' mds) ->
@@ -242,7 +242,7 @@ Section FJ_Definition.
                 Reduce (fd_access (new (ty_def c) es) f) e
   | R_Invk : forall m (c:CL) (mb:MB this) es ds e,
                mbody m (ty_def c) mb -> 
-               Subst this mb ds e ->
+               Subst this mb (new (ty_def c) es::ds) e ->
                Reduce (m_call (new (ty_def c) es) m ds) e.
 
   Notation "e ~> d" := (Reduce e d) (at level 70).
