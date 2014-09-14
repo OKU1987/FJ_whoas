@@ -580,13 +580,14 @@ Section FJ_Definition.
       constructor 2 with (d:=x0); assumption.
     Qed.
 
+
     Lemma Lem_1_4 : 
       forall m c0 mb, 
         mbody m c0 mb -> 
         forall Ds d, mtype m c0 (mty Ds d) ->
                      exists D0, exists c, subtype c0 D0 /\ 
                                           subtype c d /\
-                                          Extract_tys _ mb Ds /\
+                                          Extract_tys _ mb (D0::Ds) /\
                                           E_WF_in_MB D0 _ mb c.
       intros m c0 mb mb_c0.
       induction mb_c0.
