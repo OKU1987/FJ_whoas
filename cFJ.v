@@ -2,6 +2,7 @@ Require Import FJ_tactics.
 Require Import List.
 Require Import Arith.Peano_dec.
 Require Import JMeq.
+Require Import EqdepFacts.
 
 Section FJ_Definition.
 
@@ -392,6 +393,26 @@ Section FJ_Definition.
       eapply NIn_m; eauto.
     Qed.
 
+    Lemma Extract_tys_eq : forall xt mb Ts Ts',
+                             Extract_tys xt mb Ts ->
+                             Extract_tys xt mb Ts' -> Ts = Ts'.
+      intros xt mb Ts ? H. generalize dependent Ts'.
+      induction H; intros.
+      inversion H; subst. reflexivity.
+      inversion H1; subst.
+      apply eq_sigT_eq_dep in H3.
+      apply eq_dep_JMeq in H3.
+      apply JMeq_eq in H3. subst.
+      destruct (variables_exist _ _ H4).
+      rewrite (H0 _ _ H2). reflexivity.
+      inversion H1; subst.
+      apply eq_sigT_eq_dep in H3.
+      apply eq_dep_JMeq in H3.
+      apply JMeq_eq in H3. subst.
+      destruct (this_exists _ _ H4).
+      rewrite (H0 _ _ H2). reflexivity.
+    Qed.
+
 
     Lemma meth_overriding S T (sub_S_T : subtype S T) : forall m Us U,
                               mtype m T (mty Us U) -> mtype m S (mty Us U).
@@ -615,6 +636,8 @@ Section FJ_Definition.
       inversion H13.
       apply (IHmds H H1 H3).
       subst.
+      generalize (Extract_tys_eq _ _ _ _ H8 H16); intro tys_eq;
+      inversion tys_eq; subst; clear tys_eq.
       repeat eexists; eauto.
       constructor. 
       SCase "m not in mds".
