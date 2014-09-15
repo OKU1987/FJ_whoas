@@ -843,7 +843,212 @@ Section FJ_Definition.
 
 
 
+    Inductive subexpression : E -> E -> Prop :=
+      subexp_refl : forall e, subexpression e e
+    | subexp_fd_access : forall e e' f, subexpression e e' -> subexpression e (fd_access e' f)
+    | subexp_m_call_inv : forall e m es e',
+                            subexpression e e' ->
+                            subexpression e (m_call e' m es)
+    | subexp_m_call_arg : forall e m es e',
+                            subexpression_list e es ->
+                            subexpression e (m_call e' m es)
+    | subexp_new : forall ty es e, subexpression_list e es ->
+                                   subexpression e (new ty es)
+    with subexpression_list : E -> list E -> Prop :=
+           subexp_t : forall e e' es,
+                        subexpression e e' -> subexpression_list e (e' :: es)
+         | subexp_p : forall e e' es,
+                        subexpression_list e es ->
+                        subexpression_list e (e' :: es).
 
+
+    Inductive Closed_E_WF : forall xt, MB xt -> Ty -> Prop :=
+    | cls_e_wf : forall e ty, E_WF e ty -> Closed_E_WF x (mb_empty e) ty.
+
+    Definition progress_1_P' e ty (WF_e : E_WF e ty) :=
+      forall ty es f, subexpression (fd_access (new ty es) f) e ->
+                      exists fds, fields ty fds /\
+                                  exists i, exists ty',
+                                              nth_error fds i = Some (fd ty' f).
+
+    Definition progress_1_list_P' es tys
+               (WF_es : List_P2' E_WF es tys) :=
+      forall ty es' f, subexpression_list (fd_access (new ty es') f) es ->
+                       exists fds, fields ty fds /\ exists i, exists ty', nth_error fds i = Some (fd ty' f).
+
+    Lemma progress_1_H1' : forall xt t v, progress_1_P' _ _ (T_Var xt t v).
+      unfold progress_1_P'; intros.
+      inversion H.
+    Qed.
+
+    Lemma progress_1_H2' : forall e f ty fds ty' i wf_e fields_ty nth_i,
+                             progress_1_P' _ _ wf_e ->
+                             progress_1_P' _ _ (T_Fields e f ty fds ty' i wf_e fields_ty nth_i).
+      unfold progress_1_P'; intros.
+      inversion H0; subst.
+      inversion wf_e; subst.
+      repeat eexists; eauto.
+      destruct (H _ _ _ H3) as [fds' [fds_ty [i' [ty'' H1]]]].
+      repeat eexists; eauto.
+    Qed.
+
+    Lemma progress_1_H3' : forall e ty U m Us Ss es wf_e mtype_m wf_es sub_Ss,
+                             progress_1_P' _ _ wf_e ->
+                             progress_1_list_P' _ _ wf_es ->
+                             progress_1_P' _ _ (T_Invk e ty U m Us Ss es wf_e mtype_m wf_es sub_Ss).
+      unfold progress_1_P'; unfold progress_1_list_P'; intros.
+      inversion H1; subst.
+      destruct (H _ _ _ H4) as [fds [fds_ty [i [ty' fds_i]]]].
+      repeat eexists; eauto.
+      destruct (H0 _ _ _ H4) as [fds [fds_ty [i [ty' fds_i]]]].
+      repeat eexists; eauto.
+    Qed.
+
+    Lemma progress_1_H4' : forall cl Ss fds es fds_cl wf_es sub_S,
+                             progress_1_list_P' _ _ wf_es ->
+                             progress_1_P' _ _ (T_New cl Ss fds es fds_cl wf_es sub_S).
+      unfold progress_1_P'; unfold progress_1_list_P'; intros.
+      inversion H0; subst.
+      destruct (H _ _ _ H3) as [fdfs [fds_ty [i [ty' H4]]]].
+      repeat eexists; eauto.
+    Qed.
+
+    Lemma progress_1_H5' : progress_1_list_P' nil nil (nil_P2' E_WF).
+      unfold progress_1_list_P'; intros.
+      inversion H.
+    Qed.
+
+    Lemma progress_1_H6' : forall e es ty tys wf_e wf_es,
+                             progress_1_P' _ _ wf_e ->
+                             progress_1_list_P' _ _ wf_es ->
+                             progress_1_list_P' _ _ (cons_P2' _ e ty es tys wf_e wf_es).
+      unfold progress_1_P'; unfold progress_1_list_P'; intros.
+      inversion H1; subst.
+      destruct (H _ _ _ H4) as [fds [fields_fds [i [ty']]]].
+      repeat eexists; eauto.
+      destruct (H0 _ _ _ H4) as [fds [fields_fds [i [tys']]]].
+      repeat eexists; eauto.
+    Qed.
+
+    Definition progress_1' := E_WF_rec _ _ progress_1_H1' progress_1_H2' progress_1_H3' progress_1_H4' progress_1_H5' progress_1_H6'.
+
+
+    Lemma progress_1_P : forall e ty (WF_e : Closed_E_WF _ (mb_empty e) ty),
+      forall ty es f, subexpression (fd_access (new ty es) f) e ->
+                      exists fds, fields ty fds /\
+                                  exists i, exists ty',
+                                              nth_error fds i = Some (fd ty' f).
+      intros.
+      inversion WF_e; subst.
+      apply (progress_1' _ _ H1 _ _ _ H).
+    Qed.
+
+
+    Definition progress_2_P' e ty (_ : E_WF e ty) :=
+      forall ty' m es ds,
+        subexpression (m_call (new ty' es) m ds) e ->
+        exists mb, exists tys,
+                     mbody m ty' mb /\ Extract_tys _ mb tys /\ length tys = S (length ds).
+
+    Definition progress_2_list_P' es tys (_ : List_P2' E_WF es tys) :=
+      forall ty' m es' ds,
+        subexpression_list (m_call (new ty' es') m ds) es ->
+        exists mb, exists tys,
+                     mbody m ty' mb /\ Extract_tys _ mb tys /\ length tys = S (length ds).
+
+    Lemma progress_2_H1' : forall xt t v, progress_2_P' _ _ (T_Var xt t v).
+      unfold progress_2_P'; intros.
+      inversion H.
+    Qed.
+
+    Lemma progress_2_H2' : forall e f ty fds ty' i wf_e fields_ty nth_i,
+                             progress_2_P' _ _ wf_e ->
+                             progress_2_P' _ _ (T_Fields e f ty fds ty' i wf_e fields_ty nth_i).
+      unfold progress_2_P'; intros.
+      inversion H0; subst.
+      destruct (H _ _ _ _ H3).
+      exists x0; assumption.
+    Qed.
+
+    Lemma mtype_implies_mbody :
+      forall m ty mty' (mtype_m : mtype m ty mty'),
+      exists mb,
+        exists tys,
+          exists ty',
+            exists Us,
+              exists U,
+                mbody m ty mb /\ mty' = (mty Us U) /\
+                Extract_tys _ mb tys /\ length tys = length (ty'::Us).
+      intros.
+      induction mtype_m.
+      exists mb. exists (ty'::tys). exists ty'. exists tys. exists ty.
+      repeat split; try econstructor; eauto.
+      destruct IHmtype_m as [mb [tys [ty' [Us [U [mbody_m [mty'' [exstr lth]]]]]]]].
+      exists mb. exists tys.
+      repeat eexists; try econstructor 2; eauto.
+    Qed.
+
+    Lemma progress_2_H3' : forall e ty U m Us Ss es wf_e mtype_m wf_es sub_Ss,
+                             progress_2_P' _ _ wf_e ->
+                             progress_2_list_P' _ _ wf_es ->
+                             progress_2_P' _ _ (T_Invk e ty U m Us Ss es wf_e mtype_m wf_es sub_Ss).
+      unfold progress_2_P'; unfold progress_2_list_P'; intros.
+      inversion H1; subst. clear H1.
+      inversion wf_e; subst.
+      inversion wf_e; subst.
+      destruct (mtype_implies_mbody _ _ _ mtype_m) as [mb' [tys' [ty' [Us' [U' [mbody_m [Us_Us' [exstr]]]]]]]].
+      generalize (length_List_P2' _ _ _ _ _ sub_Ss).
+      destruct (length_List_P2' _ _ _ _ _ wf_es).
+      intro.
+      simpl in H1. inversion Us_Us'; subst.
+      rewrite <- H2 in H1.
+      repeat eexists; eassumption.
+      destruct (H _ _ _ _ H4).
+      exists x0. assumption.
+      destruct (H0 _ _ _ _ H4).
+      exists x0. assumption.
+    Qed.
+
+    Lemma progress_2_H4' : forall cl Ss fds es fds_cl wf_es sub_S,
+                             progress_2_list_P' _ _ wf_es ->
+                             progress_2_P' _ _ (T_New cl Ss fds es fds_cl wf_es sub_S).
+      unfold progress_2_P'; unfold progress_2_list_P'; intros.
+      inversion H0; subst.
+      destruct (H _ _ _ _ H3).
+      exists x0. assumption.
+    Qed.
+
+    Lemma progress_2_H5' : progress_2_list_P' nil nil (nil_P2' E_WF).
+      unfold progress_2_list_P'; intros.
+      inversion H.
+    Qed.
+
+    Lemma progress_2_H6' : forall e es ty tys wf_e wf_es,
+                             progress_2_P' _ _ wf_e ->
+                             progress_2_list_P' _ _ wf_es ->
+                             progress_2_list_P' _ _ (cons_P2' _ e ty es tys wf_e wf_es).
+      unfold progress_2_P'; unfold progress_2_list_P'; intros.
+      inversion H1; subst.
+      destruct (H _ _ _ _ H4) as [mb].
+      exists mb; eauto.
+      destruct (H0 _ _ _ _ H4) as [mb].
+      exists mb; eauto.
+    Qed.
+
+    Definition progress_2' := E_WF_rec _ _ progress_2_H1' progress_2_H2' progress_2_H3' progress_2_H4' progress_2_H5' progress_2_H6'.
+
+    Definition progress_2_P :
+      forall e ty (WF_e : Closed_E_WF _ (mb_empty e) ty),
+      forall ty' m es ds,
+        subexpression (m_call (new ty' es) m ds) e ->
+        exists mb tys, mbody m ty' mb /\ Extract_tys _ mb tys /\
+                       length tys = S (length ds).
+      intros.
+      inversion WF_e; subst.
+      apply (progress_2' _ _ H1 _ _ _ _ H).
+    Qed.
+
+  End Soundness.
 End FJ_Definition.
 
 
