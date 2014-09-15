@@ -138,6 +138,45 @@ Section FJ_Definition.
                      (forall v, E_WF_in_MB c _ (f v) ty) ->
                      E_WF_in_MB c this (mb_this _ f) ty.
 
+  Section E_WF_recursion.
+    Variable (P : forall e ty, E_WF e ty -> Prop)
+      (Q : forall es tys, List_P2' (E_WF) es tys -> Prop).
+
+    Hypothesis (H1 : forall xt t v, P _ _ (T_Var xt t v))
+      (H2 : forall e f ty fds ty' i wf_e fds_ty nth_i, P _ _ wf_e ->
+        P _ _ (T_Fields e f ty fds ty' i wf_e fds_ty nth_i))
+      (H3 : forall e_0 ty_0 U m Us Ss es wf_e_0 mtype_m wf_es sub_Ss_Us, P _ _ wf_e_0 -> Q _ _ wf_es -> P _ _ (T_Invk e_0 ty_0 U m Us Ss es wf_e_0 mtype_m wf_es sub_Ss_Us))
+      (H4 : forall cl Ss fds es fds_cl wf_es sub_Ss_fds,
+        Q _ _ wf_es -> P _ _ (T_New cl Ss fds es fds_cl wf_es sub_Ss_fds))
+      (H5 : Q nil nil (nil_P2' E_WF))
+      (H6 : forall e es ty tys wf_e wf_es,
+        P e ty wf_e -> Q es tys wf_es -> Q _ _ (cons_P2' _ _ _ _ _ wf_e wf_es)).
+
+
+    Fixpoint E_WF_rec e ty (wf_e : E_WF e ty) : P _ _ wf_e :=
+     match wf_e return P _ _ wf_e with
+        | T_Var xt t v => H1 xt t v
+        | T_Fields e f ty fds ty' i wf_e fds_ty nth_i =>
+          H2 e f ty fds ty' i wf_e fds_ty nth_i (E_WF_rec _ _ wf_e)
+        | T_Invk e_0 ty_0 U m Us Ss es wf_e_0 mtype_m wf_es sub_Ss_Us =>
+          H3 e_0 ty_0 U m Us Ss es wf_e_0 mtype_m wf_es sub_Ss_Us (E_WF_rec _ _ wf_e_0)
+             ((fix es_rect es Ss (wf_es : List_P2' (fun e ty => E_WF e ty) es Ss) : Q _ _ wf_es :=
+                 match wf_es return Q _ _ wf_es with
+                   | nil_P2' => H5
+                   | cons_P2' e0 S0 es Ss wf_e0 wf_es =>
+                     H6 e0 es S0 Ss wf_e0 wf_es (E_WF_rec _ _ wf_e0) (es_rect _ _ wf_es)
+                 end) _ _ wf_es)
+        | T_New cl' Ss fds es fds_cl wf_es sub_Ss_fds =>
+          H4 cl' Ss fds es fds_cl wf_es sub_Ss_fds
+             ((fix es_rect es Ss (wf_es : List_P2' (fun e ty => E_WF e ty) es Ss) : Q _ _ wf_es :=
+                 match wf_es return Q _ _ wf_es with
+                   | nil_P2' => H5
+                   | cons_P2' e0 S0 es Ss wf_e0 wf_es =>
+                     H6 e0 es S0 Ss wf_e0 wf_es (E_WF_rec _ _ wf_e0) (es_rect _ _ wf_es)
+                 end) _ _ wf_es)
+     end.
+  End E_WF_recursion.
+
   Scheme E_WF_in_MB_rec := Induction for E_WF_in_MB Sort Prop.
 
 
