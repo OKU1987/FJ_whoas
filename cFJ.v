@@ -692,7 +692,9 @@ Section FJ_Definition.
       rename e into e'. rename Us into Ds. rename Ss into Cs.
       destruct (Lem_1_4 _ _ _ mbody_m _ _ H4)
         as [D0 [b [sub_c0_D0 [sub_b_c [ext_Ds wf_mb]]]]].
-      destruct (Term_subst_pres_types _ _ _ wf_mb _ _ _ _ H6 H7 ext_Ds sub_mb)
+      generalize (cons_P2' _ _ _ _ _ sub_c0_D0 H7);
+      generalize (cons_P2' _ _ _ _ _ H3 H6); intros.
+      destruct (Term_subst_pres_types _ _ _ wf_mb _ _ _ _ H0 H1 ext_Ds sub_mb)
                as [d [wf_e' sub_d_b]].
       exists d. split.
       assumption.
