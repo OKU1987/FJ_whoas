@@ -308,6 +308,12 @@ Section FJ_Definition.
                       C_Reduce_List es es' -> C_Reduce_List (e :: es) (e :: es').
 
 
+  Scheme C_Reduce_rec :=
+    Induction for C_Reduce Sort Prop
+    with C_Reduce_List_rec := Induction for C_Reduce_List Sort Prop.
+
+
+
   Section Soundness.
     Variable (WF_CT : forall c l, CT c = Some l -> L_WF l).
 
