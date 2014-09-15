@@ -747,6 +747,99 @@ Section FJ_Definition.
     Qed.
 
 
+    Theorem pres : forall e e',
+                     Reduce e e' ->
+                     forall c, E_WF e c -> exists d, E_WF e' d /\ subtype d c.
+      intros e e' red_c. induction red_c.
+      intros.
+      eapply pres_H1; eauto.
+      eapply pres_H2; eauto.
+    Qed.
+
+
+    Definition C_pres_P e e' (red_e : C_Reduce e e') :=
+      forall c, E_WF e c -> exists d, E_WF e' d /\ subtype d c.
+
+    Definition Reduce_List_pres_P es es' (red_es : C_Reduce_List es es') :=
+      forall cs, List_P2' E_WF es cs ->
+                 exists ds, List_P2' E_WF es' ds /\ List_P2' subtype ds cs.
+
+    Lemma C_pres_H1 : forall e e' f red_e,
+                        C_pres_P _ _ red_e ->
+                        C_pres_P _ _ (RC_Field e e' f red_e).
+      unfold C_pres_P; intros.
+      inversion H0; subst.
+      destruct (H _ H3) as [d [wf_e']].
+      destruct (subclass_fields _ _ H1 _ H4) as [fds' [fields_d]].
+      generalize (H2 _ _ H6); intro.
+      repeat eexists; try econstructor; try eassumption.
+    Qed.
+
+    Lemma C_pres_H2 : forall e e' m es red_e,
+                        C_pres_P _ _ red_e ->
+                        C_pres_P _ _ (RC_Invk_Recv e e' m es red_e).
+      unfold C_pres_P; intros.
+      inversion H0; subst.
+      destruct (H _ H4) as [d [wf_e']].
+      generalize (meth_overriding _ _ H1 _ _ _ H5). intro.
+      repeat eexists; try econstructor; try eassumption.
+    Qed.
+
+    Lemma C_pres_H3 : forall e m es es' red_es,
+                        Reduce_List_pres_P _ _ red_es ->
+                        C_pres_P _ _ (RC_Invk_Arg e m es es' red_es).
+      unfold Reduce_List_pres_P; unfold C_pres_P; intros.
+      inversion H0; subst.
+      destruct (H _ H7) as [ds [wf_es']].
+      repeat eexists; try econstructor; eauto.
+      generalize H1 H8; clear; intros.
+      Prop_Ind H1; intros; inversion H8; subst; econstructor.
+      econstructor 2; eassumption.
+      eapply IHList_P2'; try eassumption; reflexivity.
+    Qed.
+
+    Lemma C_pres_H4 : forall ty es es' red_es,
+                        Reduce_List_pres_P _ _ red_es ->
+                        C_pres_P _ _ (RC_New_Arg ty es es' red_es).
+      unfold Reduce_List_pres_P; unfold C_pres_P; intros.
+      inversion H0; subst.
+      destruct (H _ H4) as [ds [wf_es']].
+      repeat eexists; try econstructor; eauto.
+      generalize H1 H6; clear; intros.
+      Prop_Ind H1; intros; inversion H6; subst; econstructor;
+      try destruct b0. econstructor 2; eassumption.
+      eapply IHList_P2'; try eassumption; reflexivity.
+    Qed.
+
+    Lemma Reduce_List_pres_H1 :
+      forall e e' es red_e, C_pres_P _ _ red_e ->
+                            Reduce_List_pres_P _ _ (Reduce_T e e' es red_e).
+      unfold Reduce_List_pres_P; unfold C_pres_P; intros.
+      inversion H0; subst.
+      destruct (H _ H3) as [d [wf_e']].
+      exists (d::Bs). split.
+      constructor; assumption.
+      constructor. assumption.
+      clear.
+      induction Bs; constructor.
+      constructor.
+      assumption.
+    Qed.
+
+    Lemma Reduce_List_pres_H2 :
+      forall e es es' red_es, Reduce_List_pres_P _ _ red_es ->
+                              Reduce_List_pres_P _ _ (Reduce_P e es es' red_es).
+      unfold Reduce_List_pres_P; unfold C_pres_P; intros.
+      inversion H0; subst.
+      destruct (H _ H5) as [ds [wf_es]].
+      exists (b::ds). split.
+      constructor; assumption.
+      constructor. constructor. assumption.
+    Qed.
+
+    Definition C_pres := C_Reduce_rec _ _ C_pres_H1 C_pres_H2 C_pres_H3 C_pres_H4 Reduce_List_pres_H1 Reduce_List_pres_H2.
+
+    Definition Reduce_List_pres := C_Reduce_List_rec _ _ C_pres_H1 C_pres_H2 C_pres_H3 C_pres_H4 Reduce_List_pres_H1 Reduce_List_pres_H2.
 
 
 
