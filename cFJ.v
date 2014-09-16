@@ -481,22 +481,19 @@ Section FJ_Definition.
                                             (forall fd' n, nth_error fds' n = Some fd' -> nth_error fds n = Some fd').
       intros S T sub_S_T.
       induction sub_S_T; intros.
-      Case "sub_refl".
-      exists fds'. split. assumption.
-      intros. assumption.
-      Case "sub_trans".
-      destruct (IHsub_S_T2 _ H) as [fds'' [fields_d nth_fds']].
-      destruct (IHsub_S_T1 _ fields_d) as [fds''' [fields_c nth_fds'']].
-      exists fds'''. split. assumption.
-      intros.
-      apply (nth_fds'' _ _ (nth_fds' _ _ H0)).
-      Case "sub_class".
-      generalize (WF_CT _ _ H); intros.
-      inversion H1; subst.
-      generalize (Fields_eq _ _ H0 _ H8); intro; subst.
-      eexists. split. econstructor; eassumption.
-      clear. 
-      induction d_fds; intros; destruct n; simpl in *|-*; try discriminate; auto.
+      - exists fds'. split. assumption.
+        intros. assumption.
+      - destruct (IHsub_S_T2 _ H) as [fds'' [fields_d nth_fds']].
+        destruct (IHsub_S_T1 _ fields_d) as [fds''' [fields_c nth_fds'']].
+        exists fds'''. split. assumption.
+        intros.
+        apply (nth_fds'' _ _ (nth_fds' _ _ H0)).
+      - generalize (WF_CT _ _ H); intros.
+        inversion H1; subst.
+        generalize (Fields_eq _ _ H0 _ H8); intro; subst.
+        eexists. split. econstructor; eassumption.
+        clear.
+        induction d_fds; intros; destruct n; simpl in *|-*; try discriminate; auto.
     Qed.
 
 
@@ -593,57 +590,57 @@ Section FJ_Definition.
                                      exists E, E_WF e E /\ subtype E D.
       intros mb D0 D H.
       induction H.
-      Case "wf_e_mb_empty".
-      intros.
-      inversion H3; subst.
-      exists ty. split. assumption. constructor.
-      Case "wf_e_mb_var".
-      intros.
-      inversion H4; subst.
-      inversion H3; subst.
-      assert (JMeq f1 f) by
-          (change match existT (fun t => V x t -> MB x) t f1 with
-                       | existT t f1 => JMeq f1 f
-                   end; rewrite H6; constructor); subst; clear H6.
-      assert (JMeq ctxt0 f) by
-          (change match existT (fun t => V x t -> MB x) t ctxt0 with
-                       | existT t ctxt0 => JMeq ctxt0 f
-                   end; rewrite H9; constructor); subst; clear H9.
-      inversion H1; subst.
-      inversion H2; subst.
-      rename e1 into d.
-      destruct (variables_exist _ _ H7) as [v sub_v].
-      generalize (H10 v); intro ex_tys.
-      destruct (H0 _ _ _ _ _ H12 H15 ex_tys sub_v).
-      generalize Term_subst_pres_types_sub; intro.
-      destruct H5.
-      destruct (H6 _ _ _ H8 _ _ _ _ _ H5 H9 H13).
-      destruct H14.
-      exists x1. split. assumption.
-      constructor 2 with (d:=x0); assumption.
-      Case "wf_e_mb_this".
-      intros.
-      inversion H4; subst.
-      inversion H3; subst.
-      assert (JMeq f1 f) by
-          (change match existT (fun t => V _ t -> MB x) D0 f1 with
-                       | existT D0 f1 => JMeq f1 f
-                   end; rewrite H6; constructor); subst; clear H6.
-      assert (JMeq ctxt0 f) by
-          (change match existT (fun t => V _ t -> MB x) D0 ctxt0 with
-                       | existT D0 ctxt0 => JMeq ctxt0 f
-                   end; rewrite H9; constructor); subst; clear H9.
-      inversion H1; subst.
-      inversion H2; subst.
-      destruct (this_exists _ _ H7) as [v sub_v].
-      generalize (H10 v); intro ex_tys.
-      destruct (H0 _ _ _ _ _ H12 H15 ex_tys sub_v).
-      generalize Term_subst_pres_types_sub; intro.
-      destruct H5.
-      destruct (H6 _ _ _ H8 _ _ _ _ _ H5 H9 H13).
-      destruct H14.
-      exists x1. split. assumption.
-      constructor 2 with (d:=x0); assumption.
+      - (* Case: wf_e_mb_empty *)
+        intros.
+        inversion H3; subst.
+        exists ty. split. assumption. constructor.
+      - (* Case: wf_e_mb_var *)
+        intros.
+        inversion H4; subst.
+        inversion H3; subst.
+        assert (JMeq f1 f) by
+            (change match existT (fun t => V x t -> MB x) t f1 with
+                      | existT t f1 => JMeq f1 f
+                    end; rewrite H6; constructor); subst; clear H6.
+        assert (JMeq ctxt0 f) by
+            (change match existT (fun t => V x t -> MB x) t ctxt0 with
+                      | existT t ctxt0 => JMeq ctxt0 f
+                    end; rewrite H9; constructor); subst; clear H9.
+        inversion H1; subst.
+        inversion H2; subst.
+        rename e1 into d.
+        destruct (variables_exist _ _ H7) as [v sub_v].
+        generalize (H10 v); intro ex_tys.
+        destruct (H0 _ _ _ _ _ H12 H15 ex_tys sub_v).
+        generalize Term_subst_pres_types_sub; intro.
+        destruct H5.
+        destruct (H6 _ _ _ H8 _ _ _ _ _ H5 H9 H13).
+        destruct H14.
+        exists x1. split. assumption.
+        constructor 2 with (d:=x0); assumption.
+      - (* Case: wf_e_mb_this *)
+        intros.
+        inversion H4; subst.
+        inversion H3; subst.
+        assert (JMeq f1 f) by
+            (change match existT (fun t => V _ t -> MB x) D0 f1 with
+                      | existT D0 f1 => JMeq f1 f
+                    end; rewrite H6; constructor); subst; clear H6.
+        assert (JMeq ctxt0 f) by
+            (change match existT (fun t => V _ t -> MB x) D0 ctxt0 with
+                      | existT D0 ctxt0 => JMeq ctxt0 f
+                    end; rewrite H9; constructor); subst; clear H9.
+        inversion H1; subst.
+        inversion H2; subst.
+        destruct (this_exists _ _ H7) as [v sub_v].
+        generalize (H10 v); intro ex_tys.
+        destruct (H0 _ _ _ _ _ H12 H15 ex_tys sub_v).
+        generalize Term_subst_pres_types_sub; intro.
+        destruct H5.
+        destruct (H6 _ _ _ H8 _ _ _ _ _ H5 H9 H13).
+        destruct H14.
+        exists x1. split. assumption.
+        constructor 2 with (d:=x0); assumption.
     Qed.
 
 
@@ -657,53 +654,52 @@ Section FJ_Definition.
                                           E_WF_in_MB D0 _ mb c.
       intros m c0 mb mb_c0.
       induction mb_c0.
-      Case "mb_class".
-      intros.
-      inversion H1; subst.
-      SCase "m in mds".
-      rewrite H in H6. inversion H6; subst. clear H6.
-      generalize (WF_CT _ _ H); intros. inversion H2; subst.
-      generalize (H12 _ H0) (H12 _ H7). intros. 
-      inversion H3; subst. inversion H4; subst.
-      rewrite H23 in H18. inversion H18; subst. clear H18.
-      rewrite H in H23. inversion H23; subst. clear H23.
-      assert (mb0 = mb).
-      generalize H0 H7 H13; clear; intros.
-      induction mds. inversion H0.
-      inversion H0; inversion H7.
-      rewrite H in H1. inversion H1; subst. split; reflexivity.
-      subst. inversion H13.
-      contradict H.
-      apply (in_map (fun md' => match md' with md _ m _ => m end) _ _ H1).
-      subst. inversion H13.
-      contradict H1.
-      apply (in_map (fun md' => match md' with md _ m _ => m end) _ _ H).
-      inversion H13.
-      apply (IHmds H H1 H3).
-      subst.
-      generalize (Extract_tys_eq _ _ _ _ H8 H16); intro tys_eq;
-      inversion tys_eq; subst; clear tys_eq.
-      repeat eexists; eauto.
-      constructor. 
-      SCase "m not in mds".
-      rewrite H in H3. inversion H3; subst. clear H3.
-      destruct (H4 ty mb H0).
-      Case "mb_super".
-      intros.
-      inversion H1; subst.
-      SCase "m in mds".
-      rewrite H in H6. inversion H6; subst. 
-      destruct (H0 _ _ H7).
-      SCase "m not in mds".
-      rewrite H in H3. inversion H3; subst. clear H3.
-      destruct (IHmb_c0 _ _ H6)
-               as [D0' [c' [sub_d1_D0' [sub_c_d [ext_Ds wf_mb']]]]].
-      repeat eexists; eauto.
-      destruct d1.
-      constructor 2 with (d:=ty_def c0).
-      eapply sub_class; eauto. assumption.
+      - (* Case: mb_class *)
+        intros.
+        inversion H1; subst.
+        + (* SCase: m in mds *)
+          rewrite H in H6. inversion H6; subst. clear H6.
+          generalize (WF_CT _ _ H); intros. inversion H2; subst.
+          generalize (H12 _ H0) (H12 _ H7). intros.
+          inversion H3; subst. inversion H4; subst.
+          rewrite H23 in H18. inversion H18; subst. clear H18.
+          rewrite H in H23. inversion H23; subst. clear H23.
+          assert (mb0 = mb).
+          generalize H0 H7 H13; clear; intros.
+          induction mds. inversion H0.
+          inversion H0; inversion H7.
+          rewrite H in H1. inversion H1; subst. split; reflexivity.
+          subst. inversion H13.
+          contradict H.
+          apply (in_map (fun md' => match md' with md _ m _ => m end) _ _ H1).
+          subst. inversion H13.
+          contradict H1.
+          apply (in_map (fun md' => match md' with md _ m _ => m end) _ _ H).
+          inversion H13.
+          apply (IHmds H H1 H3).
+          subst.
+          generalize (Extract_tys_eq _ _ _ _ H8 H16); intro tys_eq;
+          inversion tys_eq; subst; clear tys_eq.
+          repeat eexists; eauto.
+          constructor.
+        + (* SCase: m not in mds *)
+          rewrite H in H3. inversion H3; subst. clear H3.
+          destruct (H4 ty mb H0).
+      - (* Case: mb_super *)
+        intros.
+        inversion H1; subst.
+        + (* SCase: m in mds *)
+          rewrite H in H6. inversion H6; subst.
+          destruct (H0 _ _ H7).
+        + (* SCase: m not in mds *)
+          rewrite H in H3. inversion H3; subst. clear H3.
+          destruct (IHmb_c0 _ _ H6)
+            as [D0' [c' [sub_d1_D0' [sub_c_d [ext_Ds wf_mb']]]]].
+          repeat eexists; eauto.
+          destruct d1.
+          constructor 2 with (d:=ty_def c0).
+          eapply sub_class; eauto. assumption.
     Qed.
-
 
 
     Definition pres_P e e' (red_c : Reduce e e') :=
