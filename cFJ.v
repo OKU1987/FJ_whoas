@@ -718,44 +718,11 @@ Section FJ_Definition.
       generalize (Fields_eq _ _ H4 _ fields_fds).
       intros; subst.
       rename Ss into Cs.
-      assert (
-          (forall e n, nth_error es n = Some e ->
-                       exists c, nth_error Cs n = Some c /\ E_WF e c) /\
-          (forall n, nth_error es n = None -> nth_error Cs n = None)
-        ) by
-          ((generalize H6; clear; intro; split;
-            induction H6; intros;
-            induction n;
-            match goal with
-              | [H: nth_error _ _ = Some _|-_] =>
-                inversion H; subst;
-              try (destruct (IHForall2 _ _ H2) as [c [nth_c]]);
-              repeat eexists; eauto
-                            | _ => try reflexivity; try discriminate
-            end);
-           (try simpl in H0; generalize (IHForall2 _ H0); intros; simpl;
-            assumption)).
-      destruct H0 as [fnd_es not_fnd_es].
+      destruct (Forall2_nth_error _ _ _ _ _ H6) as [fnd_es not_fnd_es].
       destruct (fnd_es _ _ es_n) as [C [Cs_n wf_e0]].
       exists C. split. eassumption.
       rewrite <- (fds_distinct _ _ H3 _ _ _ _ _ _ (refl_equal _) fds_n H5) in H5.
-      assert (
-          (forall c n, nth_error Cs n = Some c ->
-                       exists fd', nth_error fds n = Some fd' /\
-                                   match fd' with fd d _ => subtype c d end) /\
-          (forall n, nth_error Cs n = None -> nth_error fds n = None)
-        ) by
-          ((generalize H8; clear; intro; split;
-            induction H8; intros; induction n;
-            match goal with
-              | [H:nth_error _ _ = Some _|-_] =>
-                inversion H0; subst; destruct y;
-              try (destruct (IHForall2 _ _ H0) as [fd' [nth_l']]);
-              repeat eexists; eauto
-                            | _ => try reflexivity; try discriminate
-            end);
-           (generalize (IHForall2 _ H0); intros; simpl; assumption)).
-      destruct H0 as [fnd_Cs not_fnd_Cs].
+      destruct (Forall2_nth_error _ _ _ _ _ H8) as [fnd_Cs not_fnd_Cs].
       destruct (fnd_Cs _ _ Cs_n) as [fd' [fds_n' sub_C]].
       rewrite fds_n' in H5. inversion H5. subst. 
       assumption.
