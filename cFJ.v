@@ -1040,7 +1040,7 @@ Section FJ_Definition.
 
     Definition progress_2' := E_WF_rec _ _ progress_2_H1' progress_2_H2' progress_2_H3' progress_2_H4' progress_2_H5' progress_2_H6'.
 
-    Definition progress_2_P :
+    Definition progress_2 :
       forall e ty (WF_e : Closed_E_WF _ (mb_empty e) ty),
       forall ty' m es ds,
         subexpression (m_call (new ty' es) m ds) e ->
