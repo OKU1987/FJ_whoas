@@ -1,4 +1,4 @@
-Require Import FJ_tactics.
+Require Import FJ_util.
 Require Import List.
 Require Import Arith.Peano_dec.
 Require Import JMeq.
