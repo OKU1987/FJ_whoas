@@ -22,3 +22,17 @@ Lemma Forall2_length : forall A B (R : A -> B -> Prop) l l',
   simpl; auto.
 Qed.
 
+
+Lemma Forall2_nth_error :
+  forall A B (R : A -> B -> Prop) l l',
+    Forall2 R l l' ->
+    (forall a n, nth_error l n = Some a ->
+                 exists b, nth_error l' n = Some b /\ R a b) /\
+    (forall n, nth_error l n = None -> nth_error l' n = None).
+  intros A B R l l' H.
+  split; induction H; intros; induction n;
+  simpl in *|-*; try reflexivity; try discriminate.
+  inversion H1; subst; repeat eexists; eauto.
+  generalize (IHForall2 _ _ H1); intros; assumption.
+  generalize (IHForall2 _ H1); intros; assumption.
+Qed.
