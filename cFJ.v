@@ -118,12 +118,12 @@ Section FJ_Definition.
   | T_Invk : forall e_0 ty_0 U m Us Ss es,
              E_WF e_0 ty_0 ->
              mtype m ty_0 (mty Us U) ->
-             List_P2' E_WF es Ss -> List_P2' subtype Ss Us ->
+             Forall2 E_WF es Ss -> Forall2 subtype Ss Us ->
              E_WF (m_call e_0 m es) U
   | T_New : forall cl Ss fds es,
               fields (ty_def cl) fds ->
-              List_P2' E_WF es Ss ->
-              List_P2' (fun S fd' => match fd' with fd T _ => subtype S T end) Ss fds ->
+              Forall2 E_WF es Ss ->
+              Forall2 (fun S fd' => match fd' with fd T _ => subtype S T end) Ss fds ->
             E_WF (new (ty_def cl) es) (ty_def cl).
 
 
@@ -140,7 +140,7 @@ Section FJ_Definition.
 
   Section E_WF_recursion.
     Variable (P : forall e ty, E_WF e ty -> Prop)
-      (Q : forall es tys, List_P2' (E_WF) es tys -> Prop).
+      (Q : forall es tys, Forall2 (E_WF) es tys -> Prop).
 
     Hypothesis (H1 : forall xt t v, P _ _ (T_Var xt t v))
       (H2 : forall e f ty fds ty' i wf_e fds_ty nth_i, P _ _ wf_e ->
@@ -148,9 +148,9 @@ Section FJ_Definition.
       (H3 : forall e_0 ty_0 U m Us Ss es wf_e_0 mtype_m wf_es sub_Ss_Us, P _ _ wf_e_0 -> Q _ _ wf_es -> P _ _ (T_Invk e_0 ty_0 U m Us Ss es wf_e_0 mtype_m wf_es sub_Ss_Us))
       (H4 : forall cl Ss fds es fds_cl wf_es sub_Ss_fds,
         Q _ _ wf_es -> P _ _ (T_New cl Ss fds es fds_cl wf_es sub_Ss_fds))
-      (H5 : Q nil nil (nil_P2' E_WF))
+      (H5 : Q nil nil (Forall2_nil E_WF))
       (H6 : forall e es ty tys wf_e wf_es,
-        P e ty wf_e -> Q es tys wf_es -> Q _ _ (cons_P2' _ _ _ _ _ wf_e wf_es)).
+        P e ty wf_e -> Q es tys wf_es -> Q _ _ (Forall2_cons _ _ wf_e wf_es)).
 
 
     Fixpoint E_WF_rec e ty (wf_e : E_WF e ty) : P _ _ wf_e :=
@@ -160,18 +160,18 @@ Section FJ_Definition.
           H2 e f ty fds ty' i wf_e fds_ty nth_i (E_WF_rec _ _ wf_e)
         | T_Invk e_0 ty_0 U m Us Ss es wf_e_0 mtype_m wf_es sub_Ss_Us =>
           H3 e_0 ty_0 U m Us Ss es wf_e_0 mtype_m wf_es sub_Ss_Us (E_WF_rec _ _ wf_e_0)
-             ((fix es_rect es Ss (wf_es : List_P2' (fun e ty => E_WF e ty) es Ss) : Q _ _ wf_es :=
+             ((fix es_rect es Ss (wf_es : Forall2 (fun e ty => E_WF e ty) es Ss) : Q _ _ wf_es :=
                  match wf_es return Q _ _ wf_es with
-                   | nil_P2' => H5
-                   | cons_P2' e0 S0 es Ss wf_e0 wf_es =>
+                   | Forall2_nil => H5
+                   | Forall2_cons e0 S0 es Ss wf_e0 wf_es =>
                      H6 e0 es S0 Ss wf_e0 wf_es (E_WF_rec _ _ wf_e0) (es_rect _ _ wf_es)
                  end) _ _ wf_es)
         | T_New cl' Ss fds es fds_cl wf_es sub_Ss_fds =>
           H4 cl' Ss fds es fds_cl wf_es sub_Ss_fds
-             ((fix es_rect es Ss (wf_es : List_P2' (fun e ty => E_WF e ty) es Ss) : Q _ _ wf_es :=
+             ((fix es_rect es Ss (wf_es : Forall2 (fun e ty => E_WF e ty) es Ss) : Q _ _ wf_es :=
                  match wf_es return Q _ _ wf_es with
-                   | nil_P2' => H5
-                   | cons_P2' e0 S0 es Ss wf_e0 wf_es =>
+                   | Forall2_nil => H5
+                   | Forall2_cons e0 S0 es Ss wf_e0 wf_es =>
                      H6 e0 es S0 Ss wf_e0 wf_es (E_WF_rec _ _ wf_e0) (es_rect _ _ wf_es)
                  end) _ _ wf_es)
      end.
@@ -214,18 +214,18 @@ Section FJ_Definition.
                         (fd_access e0' f)
   | S_m_call : forall e0 es e e0' es' m,
                  Sub e0 e e0' ->
-                 List_P2' (fun e0 e0' => Sub e0 e e0') es es' ->
+                 Forall2 (fun e0 e0' => Sub e0 e e0') es es' ->
                  Sub (fun xt t v => 
                         m_call (e0 xt t v) m (map (fun e0 => e0 xt t v) es)) 
                      e (m_call e0' m es')
   | S_new : forall ty es e es',
-              List_P2' (fun e0 e0' => Sub e0 e e0') es es' ->
+              Forall2 (fun e0 e0' => Sub e0 e e0') es es' ->
               Sub (fun xt t v => new ty (map (fun e0 => e0 xt t v) es)) e
                   (new ty es').
 
  Section Sub_recursion.
     Variables (P : forall e0 e e0', Sub e0 e e0' -> Prop)
-              (Q : forall es e es', List_P2' (fun e0 e0' => Sub e0 e e0') es es' -> Prop).
+              (Q : forall es e es', Forall2 (fun e0 e0' => Sub e0 e e0') es es' -> Prop).
 
     Hypothesis 
       (H1 : forall e, P _ _ _ (S_var_eq e))
@@ -233,8 +233,8 @@ Section FJ_Definition.
       (H3 : forall e0 e e0' f sub_e0, P _ _ _ sub_e0 -> P _ _ _ (S_fd_access e0 e e0' f sub_e0))
       (H4 : forall e0 es e e0' es' m sub_e0 sub_es, P _ _ _ sub_e0 -> Q _ _ _ sub_es -> P _ _ _ (S_m_call e0 es e e0' es' m sub_e0 sub_es))
       (H5 : forall ty es e es' sub_es, Q _ _ _ sub_es -> P _ _ _ (S_new ty es e es' sub_es))
-      (H6 : forall e, Q nil e nil (nil_P2' (fun e0 e0' => Sub e0 e e0')))
-      (H7 : forall e0 es e e0' es' sub_e0 sub_es, P e0 e e0' sub_e0 -> Q es e es' sub_es -> Q _ _ _ (cons_P2' _ _ _ _ _ sub_e0 sub_es)).
+      (H6 : forall e, Q nil e nil (Forall2_nil (fun e0 e0' => Sub e0 e e0')))
+      (H7 : forall e0 es e e0' es' sub_e0 sub_es, P e0 e e0' sub_e0 -> Q es e es' sub_es -> Q _ _ _ (Forall2_cons _ _ sub_e0 sub_es)).
 
     Fixpoint Sub_rec e0 e e0' (sub_e0 : Sub e0 e e0') : P _ _ _ sub_e0 :=
       match sub_e0 return P _ _ _ sub_e0 with
@@ -244,18 +244,18 @@ Section FJ_Definition.
           H3 e0 e e0' f sub_e0 (Sub_rec _ _ _ sub_e0)
         | S_m_call e0 es e e0' es' m sub_e0 sub_es =>
           H4 e0 es e e0' es' m sub_e0 sub_es (Sub_rec _ _ _ sub_e0)
-             ((fix es_rect es es' (sub_es : List_P2' (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
+             ((fix es_rect es es' (sub_es : Forall2 (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
                  match sub_es return Q _ _ _ sub_es with
-                   | nil_P2' => H6 e
-                   | cons_P2' e0 e0' es es' sub_e0 sub_es =>
+                   | Forall2_nil => H6 e
+                   | Forall2_cons e0 e0' es es' sub_e0 sub_es =>
                      H7 e0 es e e0' es' sub_e0 sub_es (Sub_rec _ _ _ sub_e0) (es_rect _ _ sub_es)
                  end) _ _ sub_es)
         | S_new ty es e es' sub_es =>
           H5 ty es e es' sub_es
-             ((fix es_rect es es' (sub_es : List_P2' (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
+             ((fix es_rect es es' (sub_es : Forall2 (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
                  match sub_es return Q _ _ _ sub_es with
-                   | nil_P2' => H6 e
-                   | cons_P2' e0 e0' es es' sub_e0 sub_es =>
+                   | Forall2_nil => H6 e
+                   | Forall2_cons e0 e0' es es' sub_e0 sub_es =>
                      H7 e0 es e e0' es' sub_e0 sub_es (Sub_rec _ _ _ sub_e0) (es_rect _ _ sub_es)
                  end) _ _ sub_es)
       end.
@@ -504,12 +504,12 @@ Section FJ_Definition.
                                   subtype S t ->
                                   exists C, E_WF e C /\ subtype C D.
 
-    Definition Term_subst_pres_types_sub_Q es d es' (sub_es : List_P2' (fun e0 e0' => Sub e0 d e0') es es') :=
+    Definition Term_subst_pres_types_sub_Q es d es' (sub_es : Forall2 (fun e0 e0' => Sub e0 d e0') es es') :=
       forall xt t (v:V xt t) Ds S, 
-        List_P2' E_WF (map (fun e0 => e0 _ _ v) es) Ds ->
+        Forall2 E_WF (map (fun e0 => e0 _ _ v) es) Ds ->
         E_WF d S ->
         subtype S t ->
-        exists Cs, List_P2' E_WF es' Cs /\ List_P2' subtype Cs Ds.
+        exists Cs, Forall2 E_WF es' Cs /\ Forall2 subtype Cs Ds.
 
 
     Lemma Term_subst_pres_types_sub_H1 : forall e, Term_subst_pres_types_sub_P _ _ _ (S_var_eq e).
@@ -562,13 +562,13 @@ Section FJ_Definition.
       constructor.
     Qed.
 
-    Lemma Term_subst_pres_types_sub_H6 : forall e, Term_subst_pres_types_sub_Q _ _ _ (nil_P2' (fun e0 e0' => Sub e0 e e0')).
+    Lemma Term_subst_pres_types_sub_H6 : forall e, Term_subst_pres_types_sub_Q _ _ _ (Forall2_nil (fun e0 e0' => Sub e0 e e0')).
       unfold Term_subst_pres_types_sub_Q; intros.
       inversion H; subst.
       exists nil. split; constructor.
     Qed.
 
-    Lemma Term_subst_pres_types_sub_H7 : forall e0 es e e0' es' sub_e0 sub_es, Term_subst_pres_types_sub_P e0 e e0' sub_e0 -> Term_subst_pres_types_sub_Q es e es' sub_es -> Term_subst_pres_types_sub_Q _ _ _ (cons_P2' _ _ _ _ _ sub_e0 sub_es).
+    Lemma Term_subst_pres_types_sub_H7 : forall e0 es e e0' es' sub_e0 sub_es, Term_subst_pres_types_sub_P e0 e e0' sub_e0 -> Term_subst_pres_types_sub_Q es e es' sub_es -> Term_subst_pres_types_sub_Q _ _ _ (Forall2_cons _ _ sub_e0 sub_es).
       unfold Term_subst_pres_types_sub_P; unfold Term_subst_pres_types_sub_Q; intros.
       inversion H1; subst.
       destruct (H _ _ _ _ _ H6 H2 H3). destruct H4.
@@ -583,8 +583,8 @@ Section FJ_Definition.
     Lemma Term_subst_pres_types : forall mb D0 D,
                                    E_WF_in_MB D0 this mb D ->
                                    forall ds Ss Us e,
-                                     List_P2' E_WF ds Ss -> 
-                                     List_P2' subtype Ss Us ->
+                                     Forall2 E_WF ds Ss ->
+                                     Forall2 subtype Ss Us ->
                                      Extract_tys this mb Us ->
                                      Subst this mb ds e ->
                                      exists E, E_WF e E /\ subtype E D.
@@ -715,11 +715,44 @@ Section FJ_Definition.
       generalize (Fields_eq _ _ H4 _ fields_fds).
       intros; subst.
       rename Ss into Cs.
-      apply P2'_if_P2 in H6; unfold List_P2 in H6; destruct H6 as [fnd_es not_fnd_es].
+      assert (
+          (forall e n, nth_error es n = Some e ->
+                       exists c, nth_error Cs n = Some c /\ E_WF e c) /\
+          (forall n, nth_error es n = None -> nth_error Cs n = None)
+        ) by
+          ((generalize H6; clear; intro; split;
+            induction H6; intros;
+            induction n;
+            match goal with
+              | [H: nth_error _ _ = Some _|-_] =>
+                inversion H; subst;
+              try (destruct (IHForall2 _ _ H2) as [c [nth_c]]);
+              repeat eexists; eauto
+                            | _ => try reflexivity; try discriminate
+            end);
+           (try simpl in H0; generalize (IHForall2 _ H0); intros; simpl;
+            assumption)).
+      destruct H0 as [fnd_es not_fnd_es].
       destruct (fnd_es _ _ es_n) as [C [Cs_n wf_e0]].
       exists C. split. eassumption.
       rewrite <- (fds_distinct _ _ H3 _ _ _ _ _ _ (refl_equal _) fds_n H5) in H5.
-      apply P2'_if_P2 in H8; unfold List_P2 in H8; destruct H8 as [fnd_Cs not_fnd_Cs].
+      assert (
+          (forall c n, nth_error Cs n = Some c ->
+                       exists fd', nth_error fds n = Some fd' /\
+                                   match fd' with fd d _ => subtype c d end) /\
+          (forall n, nth_error Cs n = None -> nth_error fds n = None)
+        ) by
+          ((generalize H8; clear; intro; split;
+            induction H8; intros; induction n;
+            match goal with
+              | [H:nth_error _ _ = Some _|-_] =>
+                inversion H0; subst; destruct y;
+              try (destruct (IHForall2 _ _ H0) as [fd' [nth_l']]);
+              repeat eexists; eauto
+                            | _ => try reflexivity; try discriminate
+            end);
+           (generalize (IHForall2 _ H0); intros; simpl; assumption)).
+      destruct H0 as [fnd_Cs not_fnd_Cs].
       destruct (fnd_Cs _ _ Cs_n) as [fd' [fds_n' sub_C]].
       rewrite fds_n' in H5. inversion H5. subst. 
       assumption.
@@ -733,8 +766,8 @@ Section FJ_Definition.
       rename e into e'. rename Us into Ds. rename Ss into Cs.
       destruct (Lem_1_4 _ _ _ mbody_m _ _ H4)
         as [D0 [b [sub_c0_D0 [sub_b_c [ext_Ds wf_mb]]]]].
-      generalize (cons_P2' _ _ _ _ _ sub_c0_D0 H7);
-      generalize (cons_P2' _ _ _ _ _ H3 H6); intros.
+      generalize (Forall2_cons _ _ sub_c0_D0 H7);
+      generalize (Forall2_cons _ _ H3 H6); intros.
       destruct (Term_subst_pres_types _ _ _ wf_mb _ _ _ _ H0 H1 ext_Ds sub_mb)
                as [d [wf_e' sub_d_b]].
       exists d. split.
@@ -757,8 +790,8 @@ Section FJ_Definition.
       forall c, E_WF e c -> exists d, E_WF e' d /\ subtype d c.
 
     Definition Reduce_List_pres_P es es' (red_es : C_Reduce_List es es') :=
-      forall cs, List_P2' E_WF es cs ->
-                 exists ds, List_P2' E_WF es' ds /\ List_P2' subtype ds cs.
+      forall cs, Forall2 E_WF es cs ->
+                 exists ds, Forall2 E_WF es' ds /\ Forall2 subtype ds cs.
 
     Lemma C_pres_H1 : forall e e' f red_e,
                         C_pres_P _ _ red_e ->
@@ -813,11 +846,11 @@ Section FJ_Definition.
       unfold Reduce_List_pres_P; unfold C_pres_P; intros.
       inversion H0; subst.
       destruct (H _ H3) as [d [wf_e']].
-      exists (d::Bs). split.
+      exists (d::l'). split.
       constructor; assumption.
       constructor. assumption.
       clear.
-      induction Bs; constructor.
+      induction l'; constructor.
       constructor.
       assumption.
     Qed.
@@ -828,7 +861,7 @@ Section FJ_Definition.
       unfold Reduce_List_pres_P; unfold C_pres_P; intros.
       inversion H0; subst.
       destruct (H _ H5) as [ds [wf_es]].
-      exists (b::ds). split.
+      exists (y::ds). split.
       constructor; assumption.
       constructor. constructor. assumption.
     Qed.
@@ -868,7 +901,7 @@ Section FJ_Definition.
                                               nth_error fds i = Some (fd ty' f).
 
     Definition progress_1_list_P' es tys
-               (WF_es : List_P2' E_WF es tys) :=
+               (WF_es : Forall2 E_WF es tys) :=
       forall ty es' f, subexpression_list (fd_access (new ty es') f) es ->
                        exists fds, fields ty fds /\ exists i, exists ty', nth_error fds i = Some (fd ty' f).
 
@@ -909,7 +942,7 @@ Section FJ_Definition.
       repeat eexists; eauto.
     Qed.
 
-    Lemma progress_1_H5' : progress_1_list_P' nil nil (nil_P2' E_WF).
+    Lemma progress_1_H5' : progress_1_list_P' nil nil (Forall2_nil E_WF).
       unfold progress_1_list_P'; intros.
       inversion H.
     Qed.
@@ -917,7 +950,7 @@ Section FJ_Definition.
     Lemma progress_1_H6' : forall e es ty tys wf_e wf_es,
                              progress_1_P' _ _ wf_e ->
                              progress_1_list_P' _ _ wf_es ->
-                             progress_1_list_P' _ _ (cons_P2' _ e ty es tys wf_e wf_es).
+                             progress_1_list_P' _ _ (@Forall2_cons _ _ E_WF e ty es tys wf_e wf_es).
       unfold progress_1_P'; unfold progress_1_list_P'; intros.
       inversion H1; subst.
       destruct (H _ _ _ H4) as [fds [fields_fds [i [ty']]]].
@@ -946,7 +979,7 @@ Section FJ_Definition.
         exists mb, exists tys,
                      mbody m ty' mb /\ Extract_tys _ mb tys /\ length tys = S (length ds).
 
-    Definition progress_2_list_P' es tys (_ : List_P2' E_WF es tys) :=
+    Definition progress_2_list_P' es tys (_ : Forall2 E_WF es tys) :=
       forall ty' m es' ds,
         subexpression_list (m_call (new ty' es') m ds) es ->
         exists mb, exists tys,
@@ -993,8 +1026,8 @@ Section FJ_Definition.
       inversion wf_e; subst.
       inversion wf_e; subst.
       destruct (mtype_implies_mbody _ _ _ mtype_m) as [mb' [tys' [ty' [Us' [U' [mbody_m [Us_Us' [exstr]]]]]]]].
-      generalize (length_List_P2' _ _ _ _ _ sub_Ss).
-      destruct (length_List_P2' _ _ _ _ _ wf_es).
+      generalize (Forall2_length _ _ _ _ _ sub_Ss).
+      destruct (Forall2_length _ _ _ _ _ wf_es).
       intro.
       simpl in H1. inversion Us_Us'; subst.
       rewrite <- H2 in H1.
@@ -1014,7 +1047,7 @@ Section FJ_Definition.
       exists x0. assumption.
     Qed.
 
-    Lemma progress_2_H5' : progress_2_list_P' nil nil (nil_P2' E_WF).
+    Lemma progress_2_H5' : progress_2_list_P' nil nil (Forall2_nil E_WF).
       unfold progress_2_list_P'; intros.
       inversion H.
     Qed.
@@ -1022,7 +1055,7 @@ Section FJ_Definition.
     Lemma progress_2_H6' : forall e es ty tys wf_e wf_es,
                              progress_2_P' _ _ wf_e ->
                              progress_2_list_P' _ _ wf_es ->
-                             progress_2_list_P' _ _ (cons_P2' _ e ty es tys wf_e wf_es).
+                             progress_2_list_P' _ _ (@Forall2_cons _ _ E_WF e ty es tys wf_e wf_es).
       unfold progress_2_P'; unfold progress_2_list_P'; intros.
       inversion H1; subst.
       destruct (H _ _ _ _ H4) as [mb].
