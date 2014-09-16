@@ -31,8 +31,6 @@ Lemma Forall2_nth_error :
     (forall n, nth_error l n = None -> nth_error l' n = None).
   intros A B R l l' H.
   split; induction H; intros; induction n;
-  simpl in *|-*; try reflexivity; try discriminate.
-  inversion H1; subst; repeat eexists; eauto.
-  generalize (IHForall2 _ _ H1); intros; assumption.
-  generalize (IHForall2 _ H1); intros; assumption.
+  try reflexivity; try discriminate; try inversion H1; try eapply @IHForall2;
+  subst; repeat eexists; eauto.
 Qed.
