@@ -541,10 +541,12 @@ Section FJ_Definition.
       generalize (meth_overriding _ _  sub_C0_D0 _ _ _ H8); intro.
       eexists.
       split. econstructor; try eassumption.
-      generalize sub_Cs_Ds H11; clear; intros.
-      Prop_Ind H11; intros; inversion sub_Cs_Ds; subst; constructor.
-      constructor 2 with (d:=a); assumption.
-      eapply IHList_P2'; eauto.
+      generalize sub_Cs_Ds H11; clear. generalize Ds Es.
+      induction Cs; intros; inversion sub_Cs_Ds; subst.
+      assumption.
+      induction Es0; inversion H11; subst; constructor;
+      try (eapply IHCs; eauto);
+      constructor 2 with (d:=y); assumption.
       constructor.
     Qed.
 
@@ -554,11 +556,12 @@ Section FJ_Definition.
       destruct (H _ _ _ _ _ H6 H1 H2) as [Es [wf_es' sub_Es_Ss]].
       eexists. split.
       econstructor; try eassumption.
-      generalize H8 sub_Es_Ss; clear; intros.
-      Prop_Ind H8; intros; inversion sub_Es_Ss; subst; constructor.
-      destruct b.
-      constructor 2 with (d:=a); assumption.
-      eapply IHList_P2'; eauto.
+      generalize H8 sub_Es_Ss; clear. generalize Es fds.
+      induction Ss; intros; inversion sub_Es_Ss; subst.
+      assumption.
+      inversion fds0; inversion H8; subst; constructor; destruct y;
+      try (eapply IHSs; eauto);
+      try (constructor 2 with (d:=a); assumption).
       constructor.
     Qed.
 
@@ -821,10 +824,12 @@ Section FJ_Definition.
       inversion H0; subst.
       destruct (H _ H7) as [ds [wf_es']].
       repeat eexists; try econstructor; eauto.
-      generalize H1 H8; clear; intros.
-      Prop_Ind H1; intros; inversion H8; subst; econstructor.
-      econstructor 2; eassumption.
-      eapply IHList_P2'; try eassumption; reflexivity.
+      generalize H1 H8; clear. generalize Us Ss.
+      induction ds; intros; inversion H1; subst.
+      assumption.
+      inversion Us; inversion H8; subst; constructor;
+      try (eapply IHds; eauto);
+      constructor 2 with (d:=y); assumption.
     Qed.
 
     Lemma C_pres_H4 : forall ty es es' red_es,
@@ -834,10 +839,12 @@ Section FJ_Definition.
       inversion H0; subst.
       destruct (H _ H4) as [ds [wf_es']].
       repeat eexists; try econstructor; eauto.
-      generalize H1 H6; clear; intros.
-      Prop_Ind H1; intros; inversion H6; subst; econstructor;
-      try destruct b0. econstructor 2; eassumption.
-      eapply IHList_P2'; try eassumption; reflexivity.
+      generalize H1 H6; clear. generalize ds fds.
+      induction Ss; intros; inversion H1; subst.
+      assumption.
+      inversion fds0; inversion H6; subst; constructor; destruct y;
+      try (eapply IHSs; eauto);
+      try (constructor 2 with (d:=a); assumption).
     Qed.
 
     Lemma Reduce_List_pres_H1 :
