@@ -1,5 +1,4 @@
 Require Import Lists.List.
-Require Import Relations.Relation_Definitions.
 
 Fixpoint distinct (A : Type) (l : list A) : Prop :=
   match l with
