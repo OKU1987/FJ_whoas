@@ -1,4 +1,5 @@
 Require Import Lists.List.
+Require Import JMeq.
 
 Fixpoint distinct (A : Type) (l : list A) : Prop :=
   match l with
@@ -50,3 +51,20 @@ Lemma Forall2_nth_error :
   try reflexivity; try discriminate; try inversion H1; try eapply @IHForall2;
   subst; repeat eexists; eauto.
 Qed.
+
+
+Ltac existT_eq' :=
+  match goal with
+    | [ H : existT ?f ?t ?a = existT ?f ?t ?b,
+            H' : JMeq ?a ?b |- _ ] =>
+      subst; clear H
+    | [ H : existT ?f ?t ?a = existT ?f ?t ?b |- JMeq ?a ?b] =>
+      change (match existT f t a with
+                | existT t c => JMeq c b
+              end); rewrite H; constructor
+    | [ H : existT ?f ?t ?a = existT ?f ?t ?b |- _] =>
+      assert (JMeq a b)
+    | _ => fail
+  end.
+
+Ltac existT_eq := repeat existT_eq'.
