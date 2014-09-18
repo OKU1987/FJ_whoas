@@ -591,14 +591,7 @@ Section FJ_Definition.
         intros.
         inversion H4; subst.
         inversion H3; subst.
-        assert (JMeq f1 f) by
-            (change match existT (fun t => V x t -> MB x) t f1 with
-                      | existT t f1 => JMeq f1 f
-                    end; rewrite H6; constructor); subst; clear H6.
-        assert (JMeq ctxt0 f) by
-            (change match existT (fun t => V x t -> MB x) t ctxt0 with
-                      | existT t ctxt0 => JMeq ctxt0 f
-                    end; rewrite H9; constructor); subst; clear H9.
+        existT_eq.
         inversion H1; subst.
         inversion H2; subst.
         rename e1 into d.
@@ -615,14 +608,7 @@ Section FJ_Definition.
         intros.
         inversion H4; subst.
         inversion H3; subst.
-        assert (JMeq f1 f) by
-            (change match existT (fun t => V _ t -> MB x) D0 f1 with
-                      | existT D0 f1 => JMeq f1 f
-                    end; rewrite H6; constructor); subst; clear H6.
-        assert (JMeq ctxt0 f) by
-            (change match existT (fun t => V _ t -> MB x) D0 ctxt0 with
-                      | existT D0 ctxt0 => JMeq ctxt0 f
-                    end; rewrite H9; constructor); subst; clear H9.
+        existT_eq.
         inversion H1; subst.
         inversion H2; subst.
         destruct (this_exists _ _ H7) as [v sub_v].
