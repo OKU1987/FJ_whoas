@@ -64,6 +64,17 @@ Ltac existT_eq' :=
               end); rewrite H; constructor
     | [ H : existT ?f ?t ?a = existT ?f ?t ?b |- _] =>
       assert (JMeq a b)
+
+    | [ H : JMeq (existT ?f ?t ?a) (existT ?f ?t ?b),
+            H' : JMeq ?a ?b |- _ ] =>
+      subst; clear H
+    | [ H : JMeq (existT ?f ?t ?a) (existT ?f ?t ?b) |- JMeq ?a0 ?b0] =>
+      change (match existT f t a with
+                | existT t c => JMeq c b0
+              end); rewrite H; constructor
+    | [ H : JMeq (existT ?f ?t ?a) (existT ?f ?t ?b) |- _ ] =>
+      assert (JMeq a b)
+
     | _ => fail
   end.
 
