@@ -643,19 +643,18 @@ Section FJ_Definition.
           inversion H3; subst. inversion H4; subst.
           rewrite H23 in H18. inversion H18; subst. clear H18.
           rewrite H in H23. inversion H23; subst. clear H23.
-          assert (mb0 = mb).
-          generalize H0 H7 H13; clear; intros.
-          induction mds. inversion H0.
-          inversion H0; inversion H7.
-          rewrite H in H1. inversion H1; subst. split; reflexivity.
-          subst. inversion H13.
-          contradict H.
-          apply (in_map (fun md' => match md' with md _ m _ => m end) _ _ H1).
-          subst. inversion H13.
-          contradict H1.
-          apply (in_map (fun md' => match md' with md _ m _ => m end) _ _ H).
-          inversion H13.
-          apply (IHmds H H1 H3).
+          assert (mb0 = mb) by
+              (generalize H0 H7 H13; clear; intros;
+               induction mds; inversion H0; inversion H7;
+               try (rewrite H in H1; inversion H1; subst; split; reflexivity);
+               subst; inversion H13;
+               try (apply (IHmds H H1 H3));
+               match goal with
+                 | [ H : ~?P, H' : In _ mds |-_] =>
+                   contradict H;
+                 apply (in_map (fun md' => match md' with md _ m _ => m end)
+                               _ _ H')
+               end).
           subst.
           generalize (Extract_tys_eq _ _ _ _ H8 H16); intro tys_eq;
           inversion tys_eq; subst; clear tys_eq.
