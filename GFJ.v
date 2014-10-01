@@ -1,4 +1,4 @@
-Require Import FJ_tactics.
+Require Import FJ_util.
 Require Import List.
 Require Import Arith.Peano_dec.
 Require Import JMeq.
@@ -66,14 +66,14 @@ Section FJ_Definition.
   | S_tvar_neq : forall (tv: TV c m n) t,
                    TSub c m n (fun _ => t_var tv) t (t_var tv)
   | S_NTy : forall c' tys t tys',
-              List_P2' (fun ty0 ty0' => TSub c m n ty0 t ty0') tys tys' ->
+              Forall2 (fun ty0 ty0' => TSub c m n ty0 t ty0') tys tys' ->
               TSub c m n
                    (fun tv => (NTy (N_def c' (map (fun ty => ty tv) tys))))
                    t (NTy (N_def c' tys')).
 
   Section TSub_recursion.
     Variables (P : forall c m n t0 t t0', TSub c m n t0 t t0' -> Prop)
-              (Q : forall c m n ts t ts', List_P2' (fun t0 t0' => TSub c m n t0 t t0') ts ts' -> Prop).
+              (Q : forall c m n ts t ts', Forall2 (fun t0 t0' => TSub c m n t0 t t0') ts ts' -> Prop).
 
     Hypothesis
       (H1 : forall c m n t, P _ _ _ _ _ _ (S_tvar_eq c m n t))
@@ -82,10 +82,10 @@ Section FJ_Definition.
               Q _ _ _ _ _ _ sub_ts ->
               P _ _ _ _ _ _ (S_NTy c m n c' tys t tys' sub_ts))
       (H4 : forall c m n t,
-              Q c m n nil t nil (nil_P2' (fun t0 t0' => TSub c m n t0 t t0')))
+              Q c m n nil t nil (Forall2_nil (fun t0 t0' => TSub c m n t0 t t0')))
       (H5 : forall c m n t0 ts t t0' ts' sub_t0 sub_ts,
               P c m n t0 t t0' sub_t0 -> Q c m n ts t ts' sub_ts ->
-              Q c m n _ _ _ (cons_P2' _ _ _ _ _ sub_t0 sub_ts)).
+              Q c m n _ _ _ (Forall2_cons _ _ sub_t0 sub_ts)).
 
 
     Fixpoint TSub_rec c m n t0 t t0' (tsub_t0 : TSub c m n t0 t t0') : P c m n _ _ _ tsub_t0 :=
@@ -94,10 +94,10 @@ Section FJ_Definition.
         | S_tvar_neq tv t => H2 c m n tv t
         | S_NTy c' tys t tys' sub_ts =>
           H3 c m n c' tys t tys' sub_ts
-             ((fix ts_rect ts ts' (sub_ts : List_P2' (fun t0 t0' => TSub c m n t0 t t0') ts ts') : Q _ _ _ _ _ _ sub_ts :=
+             ((fix ts_rect ts ts' (sub_ts : Forall2 (fun t0 t0' => TSub c m n t0 t t0') ts ts') : Q _ _ _ _ _ _ sub_ts :=
                  match sub_ts return Q _ _ _ _ _ _ sub_ts with
-                   | nil_P2' => H4 c m n t
-                   | cons_P2' t0 t0' ts ts' sub_t0 sub_ts =>
+                   | Forall2_nil => H4 c m n t
+                   | Forall2_cons t0 t0' ts ts' sub_t0 sub_ts =>
                      H5 c m n t0 ts t t0' ts' sub_t0 sub_ts (TSub_rec _ _ _ _ _ _ sub_t0) (ts_rect _ _ sub_ts)
                  end) _ _ sub_ts)
       end.
@@ -231,18 +231,18 @@ Section FJ_Definition.
                         (fd_access e0' f)
   | S_m_call : forall e0 es e e0' es' m,
                  Sub e0 e e0' ->
-                 List_P2' (fun e0 e0' => Sub e0 e e0') es es' ->
+                 Forall2 (fun e0 e0' => Sub e0 e e0') es es' ->
                  Sub (fun xt t v => 
                         m_call (e0 xt t v) m (map (fun e0 => e0 xt t v) es)) 
                      e (m_call e0' m es')
   | S_new : forall ty es e es',
-              List_P2' (fun e0 e0' => Sub e0 e e0') es es' ->
+              Forall2 (fun e0 e0' => Sub e0 e e0') es es' ->
               Sub (fun xt t v => new ty (map (fun e0 => e0 xt t v) es)) e
                   (new ty es').
 
  Section Sub_recursion.
     Variables (P : forall e0 e e0', Sub e0 e e0' -> Prop)
-              (Q : forall es e es', List_P2' (fun e0 e0' => Sub e0 e e0') es es' -> Prop).
+              (Q : forall es e es', Forall2 (fun e0 e0' => Sub e0 e e0') es es' -> Prop).
 
     Hypothesis 
       (H1 : forall e, P _ _ _ (S_var_eq e))
@@ -250,8 +250,8 @@ Section FJ_Definition.
       (H3 : forall e0 e e0' f sub_e0, P _ _ _ sub_e0 -> P _ _ _ (S_fd_access e0 e e0' f sub_e0))
       (H4 : forall e0 es e e0' es' m sub_e0 sub_es, P _ _ _ sub_e0 -> Q _ _ _ sub_es -> P _ _ _ (S_m_call e0 es e e0' es' m sub_e0 sub_es))
       (H5 : forall ty es e es' sub_es, Q _ _ _ sub_es -> P _ _ _ (S_new ty es e es' sub_es))
-      (H6 : forall e, Q nil e nil (nil_P2' (fun e0 e0' => Sub e0 e e0')))
-      (H7 : forall e0 es e e0' es' sub_e0 sub_es, P e0 e e0' sub_e0 -> Q es e es' sub_es -> Q _ _ _ (cons_P2' _ _ _ _ _ sub_e0 sub_es)).
+      (H6 : forall e, Q nil e nil (Forall2_nil (fun e0 e0' => Sub e0 e e0')))
+      (H7 : forall e0 es e e0' es' sub_e0 sub_es, P e0 e e0' sub_e0 -> Q es e es' sub_es -> Q _ _ _ (Forall2_cons _ _ sub_e0 sub_es)).
 
     Fixpoint Sub_rec e0 e e0' (sub_e0 : Sub e0 e e0') : P _ _ _ sub_e0 :=
       match sub_e0 return P _ _ _ sub_e0 with
@@ -259,20 +259,20 @@ Section FJ_Definition.
         | S_var_neq xt t v e => H2 xt t v e
         | S_fd_access e0 e e0' f sub_e0 => 
           H3 e0 e e0' f sub_e0 (Sub_rec _ _ _ sub_e0)
-        | S_m_call e0 es e e0' es' m sub_e0 sub_es =>
-          H4 e0 es e e0' es' m sub_e0 sub_es (Sub_rec _ _ _ sub_e0)
-             ((fix es_rect es es' (sub_es : List_P2' (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
+        | S_m_call e0 es e e0' es' m Vs sub_e0 sub_es =>
+          H4 e0 es e e0' es' m Vs sub_e0 sub_es (Sub_rec _ _ _ sub_e0)
+             ((fix es_rect es es' (sub_es : Forall2 (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
                  match sub_es return Q _ _ _ sub_es with
-                   | nil_P2' => H6 e
-                   | cons_P2' e0 e0' es es' sub_e0 sub_es =>
+                   | Forall2_nil => H6 e
+                   | Forall2_cons e0 e0' es es' sub_e0 sub_es =>
                      H7 e0 es e e0' es' sub_e0 sub_es (Sub_rec _ _ _ sub_e0) (es_rect _ _ sub_es)
                  end) _ _ sub_es)
         | S_new ty es e es' sub_es =>
           H5 ty es e es' sub_es
-             ((fix es_rect es es' (sub_es : List_P2' (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
+             ((fix es_rect es es' (sub_es : Forall2 (fun e0 e0' => Sub e0 e e0') es es') : Q _ _ _ sub_es :=
                  match sub_es return Q _ _ _ sub_es with
-                   | nil_P2' => H6 e
-                   | cons_P2' e0 e0' es es' sub_e0 sub_es =>
+                   | Forall2_nil => H6 e
+                   | Forall2_cons e0 e0' es es' sub_e0 sub_es =>
                      H7 e0 es e e0' es' sub_e0 sub_es (Sub_rec _ _ _ sub_e0) (es_rect _ _ sub_es)
                  end) _ _ sub_es)
       end.
