@@ -50,7 +50,7 @@ Section FJ_Definition.
 
   Inductive Mty : Set :=
   | mty : list N -> list Ty -> Ty -> Mty
-  | mty_tp : forall c m n , (TV c (Some m) n -> Mty) -> Mty.
+  | mty_tp : forall c m n, (TV c (Some m) n -> Mty) -> Mty.
 
   Inductive MD : Set :=
   | md : list N -> Ty -> M -> MB this -> MD
