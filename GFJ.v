@@ -2,6 +2,7 @@ Require Import FJ_util.
 Require Import List.
 Require Import Arith.Peano_dec.
 Require Import JMeq.
+Require Import Logic.FunctionalExtensionality.
 
 Section FJ_Definition.
 
@@ -333,6 +334,113 @@ Section FJ_Definition.
 
   Section Soundness.
     Variable (WF_CT : forall c l, CT c = Some l -> L_WF l).
+
+    Definition TSub_eq_P c m n t0 t t0' (_ : TSub c m n t0 t t0') :=
+      forall t0'', TSub c m n t0 t t0'' -> t0' = t0''.
+
+    Definition TSub_eq_Q c m n tys t tys' (_ : Forall2 (fun t0 t0' => TSub c m n t0 t t0') tys tys') :=
+      forall tys'', Forall2 (fun t0 t0' => TSub c m n t0 t t0') tys tys'' ->
+                    tys' = tys''.
+
+
+    Lemma TSub_eq_H1 : forall c m n t, TSub_eq_P _ _ _ _ _ _ (S_tvar_eq c m n t).
+      unfold TSub_eq_P; intros.
+      inversion H; subst.
+      - reflexivity.
+      - generalize (equal_f H1); intro.
+        destruct (type_variables_exist' _ _ _ tv) as [tv'].
+        generalize (H0 tv'). intro.
+        inversion H3.
+        existT_eq.
+        contradict H2. reflexivity.
+      - generalize (equal_f H0); intro.
+        destruct (type_variables_exist _ _ _ _ H2).
+        discriminate.
+    Qed.
+
+    Lemma TSub_eq_H2 : forall c m n tv t, TSub_eq_P _ _ _ _ _ _ (S_tvar_neq c m n tv t).
+      unfold TSub_eq_P; intros.
+      inversion H; subst.
+      - generalize (equal_f H1); intro.
+        destruct (type_variables_exist' _ _ _ tv) as [tv'].
+        generalize (H0 tv'); intro.
+        inversion H3. existT_eq.
+        contradict H2. reflexivity.
+      - generalize (equal_f H1); intro.
+        destruct (type_variables_exist _ _ _ _ H0).
+        rewrite H2. reflexivity.
+      - generalize (equal_f H0); intro.
+        destruct (type_variables_exist _ _ _ _ H2).
+        discriminate.
+    Qed.
+
+    Lemma TSub_eq_H3 : forall c m n c' tys t tys' sub_tys,
+                         TSub_eq_Q _ _ _ _ _ _ sub_tys ->
+                         TSub_eq_P _ _ _ _ _ _ (S_NTy c m n c' tys t tys' sub_tys).
+      unfold TSub_eq_P; unfold TSub_eq_Q; intros.
+      inversion H0; subst;
+      try (generalize (equal_f H2); intro;
+           destruct (type_variables_exist _ _ _ _ H1);
+           discriminate).
+      assert (Forall2 (fun ty0 ty0' => TSub c m n ty0 t ty0') tys tys'0).
+      generalize sub_tys H2 H1; clear; intros.
+      generalize dependent H1.
+      generalize dependent H2.
+      generalize dependent tys'0.
+      generalize dependent tys0.
+      induction sub_tys; intros tys0 tys'0 H2; induction H2; intros; subst.
+      - constructor.
+      - generalize (equal_f H1); intro.
+        destruct (type_variables_exist _ _ _ _ H0).
+        inversion H3.
+      - generalize (equal_f H1); intro.
+        destruct (type_variables_exist _ _ _ _ H0).
+        inversion H2.
+      - constructor.
+        + assert (x1 = x0).
+          apply functional_extensionality.
+          intro.
+          generalize (equal_f H1); intro.
+          generalize (H3 x2); intro.
+          inversion H4.
+          reflexivity.
+          subst.
+          assumption.
+        + eapply IHsub_tys; try eassumption.
+          apply functional_extensionality.
+          intro.
+          generalize (equal_f H1); intro.
+          generalize (H3 x2); intro.
+          inversion H4.
+          reflexivity.
+      - generalize (H _ H3); intro; subst.
+        generalize (equal_f H1); intro.
+        destruct (type_variables_exist _ _ _ _ H4).
+        inversion H5.
+        reflexivity.
+    Qed.
+
+    Lemma TSub_eq_H4 : forall c m n t,
+                         TSub_eq_Q c m n nil t nil (@Forall2_nil _ _ _).
+      unfold TSub_eq_Q. intros.
+      inversion H.
+      reflexivity.
+    Qed.
+
+    Lemma TSub_eq_H5 : forall c m n t0 ts t t0' ts' sub_t0 sub_ts,
+                         TSub_eq_P c m n t0 t t0' sub_t0 ->
+                         TSub_eq_Q c m n ts t ts' sub_ts ->
+                         TSub_eq_Q _ _ _ _ _ _ (Forall2_cons t0 t0' sub_t0 sub_ts).
+      unfold TSub_eq_P; unfold TSub_eq_Q; intros.
+      inversion H1; subst.
+      generalize (H _ H4).
+      generalize (H0 _ H6).
+      intros; subst.
+      reflexivity.
+    Qed.
+
+    Definition TSub_eq := TSub_rec _ _ TSub_eq_H1 TSub_eq_H2 TSub_eq_H3 TSub_eq_H4 TSub_eq_H5.
+
 
     Definition Fields_eq_P c fds (fields_fds : fields c fds) :=
       forall fds', fields c fds' -> fds = fds'.
