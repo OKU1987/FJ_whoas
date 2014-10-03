@@ -12,6 +12,12 @@ Section FJ_Definition.
   Inductive CL := cl : C -> CL | Object : CL.
   
   Variable TV : C -> option M -> nat -> Set.
+  Axiom type_variables_exist :
+    forall c m n (P : TV c m n -> Prop),
+      (forall tv : TV c m n, P tv) -> exists tv', P tv'.
+  Axiom type_variables_exist' :
+    forall c m n (tv : TV c m n),
+      exists tv' : TV c m n, tv <> tv'.
 
   Inductive Ty : Set :=
   | t_var : forall c m n, TV c m n -> Ty
