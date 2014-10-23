@@ -24,7 +24,6 @@ Section FJ_Definition.
   | t_var : forall c m n, TV c m n -> Ty
   | NTy : N -> Ty
   with N : Set := N_def : CL -> list Ty -> N.
-  Implicit Arguments t_var [c m n].
 
   Definition TContext := list (N * C * option M).
 
