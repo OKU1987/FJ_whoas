@@ -66,6 +66,13 @@ Section FJ_Definition.
   | cld : forall c, list N -> N -> list FD -> K -> list {m : M & MD m} -> L c
   | cld_tp : forall c n, (TV c None n -> L c) -> L c.
 
+  Inductive MD_in : forall c, L c -> M -> Prop :=
+  | md_in : forall c Ns (N':N) fds k mds m,
+              In m (map (@projS1 M _) mds) ->
+              MD_in _ (cld c Ns N' fds k mds) m
+  | md_in_tp : forall m c n f, (forall tv, MD_in _ (f tv) m) ->
+                               MD_in _ (cld_tp c n f) m.
+
 
   Inductive TSub c m n : (TV c m n -> Ty) -> Ty -> Ty -> Prop :=
   | S_tvar_eq : forall t, TSub c m n (@t_var c m n) t t
