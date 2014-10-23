@@ -62,9 +62,9 @@ Section FJ_Definition.
   | md : forall m, list N -> Ty -> MB this -> MD m
   | md_tp : forall c m n , (TV c (Some m) n -> MD m) -> MD m.
 
-  Inductive L : Set :=
-  | cld : C -> list N -> N -> list FD -> K -> list MD -> L
-  | cld_tp : forall c n, (TV c None n -> L) -> L.
+  Inductive L : C -> Set :=
+  | cld : forall c, list N -> N -> list FD -> K -> list {m : M & MD m} -> L c
+  | cld_tp : forall c n, (TV c None n -> L c) -> L c.
 
 
   Inductive TSub c m n : (TV c m n -> Ty) -> Ty -> Ty -> Prop :=
