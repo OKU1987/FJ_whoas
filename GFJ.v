@@ -32,6 +32,9 @@ Section FJ_Definition.
   Implicit Arguments N1 [c m n].
   Implicit Arguments Ty1 [c m n].
 
+  Definition NTy1 c m n : @N1 c m n -> @Ty1 c m n
+    := fun N' (tv : TV c m n) => NTy (N' tv).
+  Implicit Arguments NTy1 [c m n].
 
   Definition TContext := list (N * C * option M).
 
