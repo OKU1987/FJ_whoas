@@ -28,7 +28,10 @@ Section FJ_Definition.
   Definition NTys := map (fun N' => NTy N').
 
   Definition N1 c m n := TV c m n -> N.
+  Definition Ty1 c m n := TV c m n -> Ty.
   Implicit Arguments N1 [c m n].
+  Implicit Arguments Ty1 [c m n].
+
 
   Definition TContext := list (N * C * option M).
 
