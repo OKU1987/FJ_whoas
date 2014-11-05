@@ -25,6 +25,8 @@ Section FJ_Definition.
   | NTy : N -> Ty
   with N : Set := N_def : CL -> list Ty -> N.
 
+  Definition NTys := map (fun N' => NTy N').
+
   Definition TContext := list (N * C * option M).
 
   Inductive x_this : Set := 
