@@ -27,6 +27,9 @@ Section FJ_Definition.
 
   Definition NTys := map (fun N' => NTy N').
 
+  Definition N1 c m n := TV c m n -> N.
+  Implicit Arguments N1 [c m n].
+
   Definition TContext := list (N * C * option M).
 
   Inductive x_this : Set := 
