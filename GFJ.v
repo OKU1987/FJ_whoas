@@ -84,6 +84,7 @@ Section FJ_Definition.
   | md_in_tp : forall m c n f, (forall tv, MD_in _ (f tv) m) ->
                                MD_in _ (cld_tp c n f) m.
 
+  Variable CT : forall c, option (L c).
 
   Inductive TSub c m n : (TV c m n -> Ty) -> Ty -> Ty -> Prop :=
   | S_tvar_eq : forall t, TSub c m n (@t_var c m n) t t
@@ -128,7 +129,6 @@ Section FJ_Definition.
   End TSub_recursion.
 
 
-  Variable CT : C -> option L.
   Variable CT_self : forall c c1 cl' l k fds, CT c = Some (cld c1 cl' l k fds) -> c = c1.
   
 
