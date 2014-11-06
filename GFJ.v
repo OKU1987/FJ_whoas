@@ -224,6 +224,15 @@ Section FJ_Definition.
                   TSubstMD0 _ _ _ _ md' T md'' ->
                   TSubstMD c m (cld_tp _ _ f) (T::Ts) md''.
 
+  (* Substitute type variables of method m which occurs in method body of m *)
+  Inductive TSubstMB : forall m, MD m -> list Ty -> MB this -> Prop :=
+  | TSubMB : forall Ns t m mb,
+               TSubstMB m (md m Ns t mb) nil mb
+  | TSubMB_tp : forall c m n f (mb:MB1 _) mb' T Ts,
+                  (forall tv, TSubstMB m (f tv) Ts (mb tv))  ->
+                  TSubstMB0 c (Some m) n _ mb T mb' ->
+                  TSubstMB m (md_tp _ _ _ f) (T::Ts) mb'.
+
   Scheme fields_rec := Induction for fields Sort Prop.
 
 
