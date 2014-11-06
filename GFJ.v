@@ -162,6 +162,27 @@ Section FJ_Definition.
                 Forall2 (fun N' N => TSub c _ n (NTy1 N') T (NTy N)) Ns' Ns ->
                 TSubstB _ (cld_tp _ _ f) (T::Ts) Ns.
 
+  Inductive TSubstE c m n : @E1 c m n -> Ty -> E -> Prop :=
+  | TS_e_var : forall xt t0 ty t v v',
+                 TSub c m n t0 ty t ->
+                 TSubstE c m n (fun tv => @e_var xt (t0 tv) (v tv))
+                         t (@e_var xt t v')
+  | TS_fd_access : forall e f t,
+                     TSubstE c m n (fun _ => fd_access e f) t (fd_access e f)
+  | TS_m_call : forall e m' tys tys' es es' t,
+                  Forall2 (fun (t0:Ty1) t0' => TSub c m n t0 t t0') tys tys' ->
+                  Forall2 (fun (e0:E1) e0' => TSubstE c m n e0 t e0') es es' ->
+                  TSubstE c m n
+                        (fun tv => m_call e m' (map (fun t0 => t0 tv) tys)
+                                          (map (fun e0 => e0 tv) es))
+                        t (m_call e m' tys' es')
+  | TS_new : forall (N:N1) N' es es' t,
+               TSub c m n (NTy1 N) t (NTy N') ->
+               Forall2 (fun e0 e0' => TSubstE c m n e0 t e0') es es' ->
+               TSubstE c m n
+                     (fun tv => new (N tv) (map (fun e0:E1 => e0 tv) es))
+                     t (new N' es').
+
   Scheme fields_rec := Induction for fields Sort Prop.
 
 
