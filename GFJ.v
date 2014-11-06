@@ -214,6 +214,16 @@ Section FJ_Definition.
                    (forall tv', TSubstMD0 c m m' n (fun tv => f tv tv') T (f' tv')) ->
                    TSubstMD0 c m m' n (fun tv => md_tp c m' n (f tv)) T (md_tp c m' n f').
 
+  (* Sustitute type variables of class c which occurs in method declacation of m *)
+  Inductive TSubstMD : forall c m, L c -> list Ty -> MD m -> Prop :=
+  | TSubMD : forall c Ns N' fds k' (mds : list {m : M & MD m}) m (md':MD m),
+               In (existS _ m md') mds ->
+               TSubstMD _ _ (cld c Ns N' fds k' mds) nil md'
+  | TSubMD_tp : forall c m n (f:L1) T Ts (md':@MD1 c None m n) md'',
+                  (forall tv : TV c None n, TSubstMD _ m (f tv) Ts (md' tv)) ->
+                  TSubstMD0 _ _ _ _ md' T md'' ->
+                  TSubstMD c m (cld_tp _ _ f) (T::Ts) md''.
+
   Scheme fields_rec := Induction for fields Sort Prop.
 
 
