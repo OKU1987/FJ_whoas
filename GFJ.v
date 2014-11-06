@@ -154,6 +154,14 @@ Section FJ_Definition.
         fields (ty_def d) d_fds ->
         fields (ty_def (cl c)) (d_fds ++ c_fds).
 
+  Inductive TSubstB : forall c, L c -> list Ty -> list N -> Prop :=
+  | TSubB : forall c Ns N' fds k' mds,
+              TSubstB _ (cld c Ns N' fds k' mds) nil Ns
+  | TSub_tp : forall c n (f:L1) T Ts (Ns': list N1) Ns,
+                (forall tv, TSubstB _ (f tv) Ts (map (fun N' => N' tv) Ns')) ->
+                Forall2 (fun N' N => TSub c _ n (NTy1 N') T (NTy N)) Ns' Ns ->
+                TSubstB _ (cld_tp _ _ f) (T::Ts) Ns.
+
   Scheme fields_rec := Induction for fields Sort Prop.
 
 
