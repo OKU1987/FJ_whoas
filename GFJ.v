@@ -75,6 +75,8 @@ Section FJ_Definition.
   Inductive MD : M -> Set :=
   | md : forall m, list N -> Ty -> MB this -> MD m
   | md_tp : forall c m n , (TV c (Some m) n -> MD m) -> MD m.
+  Definition MD1 c m m' n := TV c m n -> MD m'.
+  Implicit Arguments MD1 [c m n].
 
   Inductive L : C -> Set :=
   | cld : forall c, list N -> N -> list FD -> K -> list {m : M & MD m} -> L c
