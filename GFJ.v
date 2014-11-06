@@ -63,6 +63,9 @@ Section FJ_Definition.
   | mb_var : forall t, (V x t -> MB x) -> MB x
   | mb_this : forall t, (V this t -> MB x) -> MB this.
 
+  Definition MB1 xt c m n := TV c m n -> MB xt.
+  Implicit Arguments MB1 [c m n].
+
   Inductive K := k : C -> list FD -> K.
 
   Inductive Mty : Set :=
