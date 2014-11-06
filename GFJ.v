@@ -183,6 +183,23 @@ Section FJ_Definition.
                      (fun tv => new (N tv) (map (fun e0:E1 => e0 tv) es))
                      t (new N' es').
 
+  (* Substitute a type variable which occurs in a method body *)
+  Inductive TSubstMB0 c m n : forall xt, @MB1 xt c m n -> Ty -> MB xt -> Prop :=
+  | TSubMB0_empty :
+      forall e e' t,
+        TSubstE c m n e t e' ->
+        TSubstMB0 c m n _ (fun tv => mb_empty (e tv)) t (mb_empty e')
+  | TSubstMB0_var :
+      forall ty f f' t,
+        (forall v : V _ ty,
+           TSubstMB0 c m n _ (fun tv => f tv v) t (f' v)) ->
+        TSubstMB0 c m n _ (fun tv => mb_var _ (f tv)) t (mb_var _ f')
+  | TSubstMB0_this :
+      forall ty f f' t,
+        (forall v : V _ ty,
+           TSubstMB0 c m n _ (fun tv => f tv v) t (f' v)) ->
+        TSubstMB0 c m n _ (fun tv => mb_this _ (f tv)) t (mb_this _ f').
+
   Scheme fields_rec := Induction for fields Sort Prop.
 
 
