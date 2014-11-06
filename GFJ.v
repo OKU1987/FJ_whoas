@@ -200,6 +200,20 @@ Section FJ_Definition.
            TSubstMB0 c m n _ (fun tv => f tv v) t (f' v)) ->
         TSubstMB0 c m n _ (fun tv => mb_this _ (f tv)) t (mb_this _ f').
 
+  (* Substitute a type variable which occurs in the method declacation of m' *)
+  Inductive TSubstMD0 c m m' n : @MD1 c m m' n -> Ty -> MD m' -> Prop :=
+  | TSubMD0 : forall Ps Ps' U U' (mb : forall c' m'' n', TV c' m'' n' -> MB this)  mb' T,
+                Forall2 (fun P P' => TSub c m n (NTy1 P) T (NTy P')) Ps Ps' ->
+                TSub c _ n U T U' ->
+                TSubstMB0 c m n this (mb c m n) T mb' ->
+                TSubstMD0 c m m' n (fun tv =>
+                                      md m' (map (fun P => P tv) Ps) (U tv)
+                                         (mb _ _ _ tv))
+                          T (md m' Ps' U' mb')
+  | TSubMD0_tp : forall f T f',
+                   (forall tv', TSubstMD0 c m m' n (fun tv => f tv tv') T (f' tv')) ->
+                   TSubstMD0 c m m' n (fun tv => md_tp c m' n (f tv)) T (md_tp c m' n f').
+
   Scheme fields_rec := Induction for fields Sort Prop.
 
 
